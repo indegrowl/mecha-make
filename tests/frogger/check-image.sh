@@ -37,6 +37,8 @@ check "lockscreen PIN provisioned" 'exists /etc/mechanix/pin.passwd'
 check "SSH key installed for mecha" 'exists /home/mecha/.ssh/authorized_keys'
 check "hostname frogger" '[ "$(cat_ /etc/hostname)" = frogger ]'
 check "VARIANT_ID=frogger" 'cat_ /usr/lib/os-release | grep -qx "VARIANT_ID=\"frogger\""'
+check "qbootctl installed" 'exists /usr/bin/qbootctl'
+check "mark-successful unit enabled by preset" 'cat_ /usr/lib/systemd/system-preset/80-mecha-frogger.preset | grep -qx "enable qbootctl-mark-successful.service"'
 check "tqftpserv enabled by preset" 'cat_ /usr/lib/systemd/system-preset/80-mecha-frogger.preset | grep -qx "enable tqftpserv.service"'
 
 unpacked=$(mktemp -d)

@@ -6,8 +6,8 @@ cd "$(dirname "$0")/../.."
 fail=0
 check() { if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 
-rpms=(frogger/out/rpms/*.rpm)
-check "exactly one RPM in frogger/out/rpms" '[ ${#rpms[@]} -eq 1 ] && [ -f "${rpms[0]}" ]'
+rpms=(frogger/out/rpms/kernel-*.rpm)
+check "exactly one kernel RPM in frogger/out/rpms" '[ ${#rpms[@]} -eq 1 ] && [ -f "${rpms[0]}" ]'
 rpm=${rpms[0]}
 check "RPM is kernel 7.2.0 aarch64" \
     '[ "$(rpm -qp --qf "%{NAME} %{VERSION} %{ARCH}" "$rpm" 2>/dev/null)" = "kernel 7.2.0 aarch64" ]'

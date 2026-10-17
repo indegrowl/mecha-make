@@ -1,2 +1,3 @@
 enable frogger-backlight.service
 enable tqftpserv.service
+enable qbootctl-mark-successful.service

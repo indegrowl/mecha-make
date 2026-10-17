@@ -26,6 +26,7 @@ for fw in adsp.mbn wpss.mbn; do
 done
 check "battery reported" '[ -e /sys/class/power_supply/qcom-battmgr-bat/capacity ]'
 check "charging on USB power" 'grep -Eqx "Charging|Full" /sys/class/power_supply/qcom-battmgr-bat/status'
+check "boot marked successful (qbootctl -m ran)" '[ "$(systemctl show -P Result qbootctl-mark-successful.service)" = success ] && [ "$(systemctl show -P ExecMainStatus qbootctl-mark-successful.service)" = 0 ] && [ -n "$(systemctl show -P ExecMainExitTimestamp qbootctl-mark-successful.service)" ]'
 check "Wi-Fi radio enabled" '[ "$(nmcli -t radio wifi)" = enabled ]'
 # kernel-headers (userspace API headers) may upgrade; the kernel itself must not.
 check "dnf offers no kernel upgrade" '[ -z "$(dnf -q repoquery --upgrades kernel kernel-core "kernel-modules*" 2>/dev/null)" ]'

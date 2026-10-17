@@ -130,6 +130,9 @@ verification disabled and a zeroed `dtbo_a`.
 - `mkosi.env` with `MECHA_USER_PASSWORD` and `MECHANIX_LOCKSCREEN_PIN` (both
   required for frogger), and optionally `MECHA_SSH_AUTHORIZED_KEY` (a public key
   installed for `mecha`).
+- qbootctl: `frogger/build-qbootctl.sh` builds it as an aarch64 RPM (needs
+  `podman` with arm64 emulation). The image runs `qbootctl -m` after every good
+  boot, so the bootloader's slot retry counter never runs out.
 - The kernel: `frogger/build-kernel.sh` cross-builds `../linux` (branch
   `milos-7.2.y`, override with `KERNEL_SRC`) with clang and packages it as
   `frogger/out/rpms/kernel-7.2.0-*.frogger.aarch64.rpm`. Needs `rpmbuild`.

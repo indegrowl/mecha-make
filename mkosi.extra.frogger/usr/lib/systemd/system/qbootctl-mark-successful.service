@@ -1,0 +1,15 @@
+[Unit]
+Description=Mark this A/B boot slot as successfully booted
+Documentation=https://github.com/linux-msm/qbootctl
+# The bootloader counts down a retry counter on every boot of a slot that was
+# never marked successful, and gives up on the slot at zero. Android marks the
+# slot after each good boot; this does the same once the session is up, so a
+# boot that breaks earlier still counts down.
+After=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/qbootctl -m
+
+[Install]
+WantedBy=graphical.target

@@ -32,7 +32,7 @@ check "frogger sandbox tree only" '[ "$(values "Sandbox Trees")" = /build/mkosi.
 check "local kernel RPM dir" '[ "$(field "Package Directories")" = /build/frogger/out/rpms ]'
 check "split root partition" 'values "Split Artifacts" | grep -qx partitions'
 pk=$(values Packages)
-for p in mechanix-compositor mechanix-keyboard mechanix-lockscreen mechanix-settings impeller tqftpserv qrtr usb-signaller dracut 'kernel-7.2.0-*.frogger'; do
+for p in mechanix-compositor mechanix-keyboard mechanix-lockscreen mechanix-settings impeller tqftpserv qrtr usb-signaller dracut qbootctl 'kernel-7.2.0-*.frogger'; do
     check "package $p" 'grep -qxF "$p" <<<"$pk"'
 done
 check "no systemd-boot" '! grep -qx systemd-boot-unsigned <<<"$pk"'
@@ -45,7 +45,10 @@ check "session uses the msm display by-path link" \
 check "session is executable" '[ -x mkosi.extra.frogger/usr/bin/mechanix-session ]'
 check "backlight unit uses ae94000.dsi.0" 'grep -q "/sys/class/backlight/ae94000.dsi.0" mkosi.extra.frogger/usr/lib/systemd/system/frogger-backlight.service'
 check "preset enables backlight and tqftpserv" \
-    '[ "$(grep -v "^#" mkosi.extra.frogger/usr/lib/systemd/system-preset/80-mecha-frogger.preset | sort | tr "\n" " ")" = "enable frogger-backlight.service enable tqftpserv.service " ]'
+    '[ "$(grep -v "^#" mkosi.extra.frogger/usr/lib/systemd/system-preset/80-mecha-frogger.preset | sort | tr "\n" " ")" = "enable frogger-backlight.service enable qbootctl-mark-successful.service enable tqftpserv.service " ]'
+u=mkosi.extra.frogger/usr/lib/systemd/system/qbootctl-mark-successful.service
+check "good boots are marked successful" 'grep -qx "ExecStart=/usr/bin/qbootctl -m" "$u" && grep -qx "Type=oneshot" "$u"'
+check "only after the session is up" 'grep -qx "After=graphical.target" "$u" && grep -qx "WantedBy=graphical.target" "$u"'
 check "fstab grows the root" 'grep -Eq "^LABEL=mechanix-root +/ +ext4 +defaults,x-systemd.growfs +0 +1$" mkosi.extra.frogger/etc/fstab'
 check "dnf never replaces the kernel" \
     'grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*" mkosi.extra.frogger/etc/dnf/libdnf5.conf.d/90-frogger-kernel.conf'

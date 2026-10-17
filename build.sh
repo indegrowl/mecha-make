@@ -53,6 +53,10 @@ frogger_preflight() {
             ok=1
         fi
     done
+    if ! ls frogger/out/rpms/qbootctl-*.aarch64.rpm >/dev/null 2>&1; then
+        echo "no qbootctl RPM in frogger/out/rpms (run frogger/build-qbootctl.sh)"
+        ok=1
+    fi
     local scratch
     scratch=$(mktemp -d)
     frogger/stage-firmware.sh "" "$scratch/fw" >/dev/null 2>"$scratch/err" || { cat "$scratch/err"; ok=1; }
