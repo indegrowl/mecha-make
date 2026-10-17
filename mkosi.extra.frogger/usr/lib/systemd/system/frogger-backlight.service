@@ -1,0 +1,14 @@
+[Unit]
+Description=Set DSI panel backlight to 70%%
+DefaultDependencies=no
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# The panel can probe after local-fs.target: wait for its backlight device.
+ExecStartPre=/usr/bin/udevadm wait --timeout=30 /sys/class/backlight/ae94000.dsi.0
+ExecStart=/bin/sh -c 'b=/sys/class/backlight/ae94000.dsi.0; max=$(cat "$b/max_brightness"); echo $(( max * 70 / 100 )) > "$b/brightness"'
+
+[Install]
+WantedBy=multi-user.target

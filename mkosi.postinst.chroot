@@ -31,6 +31,14 @@ if [ -n "${MECHANIX_LOCKSCREEN_PIN:-}" ]; then
     chmod 0640 "$PIN_FILE"
 fi
 
+# From mkosi.env. Optional SSH public key for the user (e.g. for SSH over USB).
+if [ -n "${MECHA_SSH_AUTHORIZED_KEY:-}" ]; then
+    install -d -m 0700 -o "$USERNAME" -g "$USERNAME" "/home/$USERNAME/.ssh"
+    printf '%s\n' "$MECHA_SSH_AUTHORIZED_KEY" > "/home/$USERNAME/.ssh/authorized_keys"
+    chown "$USERNAME:$USERNAME" "/home/$USERNAME/.ssh/authorized_keys"
+    chmod 0600 "/home/$USERNAME/.ssh/authorized_keys"
+fi
+
 glib-compile-schemas /usr/share/glib-2.0/schemas/
 
 ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
@@ -80,4 +88,14 @@ EOF
     # virtio-gpu-gl hardware cursor renders Y-flipped under wlroots; force software cursor.
     mkdir -p /etc/environment.d
     echo 'WLR_NO_HARDWARE_CURSORS=1' > /etc/environment.d/50-qemu-wlr-no-hw-cursor.conf
+fi
+
+# frogger profile (Nothing Phone (4a)): the bootloader appends "init=/init" to the
+# kernel command line and the initrd's switch-root honours it, so /init must
+# start systemd. The initramfs for boot.img carries no modules: everything
+# needed to mount the root (UFS, ext4) is built into the kernel, and boot_a
+# only holds 96 MiB.
+if [[ " ${PROFILES:-} " == *" frogger "* ]]; then
+    ln -snf usr/lib/systemd/systemd /init
+    dracut --force --no-hostonly --no-kernel --kver 7.2.0 /boot/initramfs-frogger.img
 fi

@@ -1,0 +1,4 @@
+# The root filesystem sits directly on the userdata partition. It is built small
+# and grown to the whole partition on first boot. The phone's bootloader appends
+# "ro" to the kernel command line, so / is remounted read-write from here.
+LABEL=mechanix-root / ext4 defaults,x-systemd.growfs 0 1
