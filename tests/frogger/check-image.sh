@@ -19,6 +19,10 @@ check "fstab grows and remounts the root" 'cat_ /etc/fstab | grep -Eq "^LABEL=me
 check "only the 7.2.0 modules" '[ "$(dbg "ls -p /usr/lib/modules" | awk -F/ "\$6 != \".\" && \$6 != \"..\" && \$6 != \"\" {print \$6}")" = 7.2.0 ]'
 check "ADSP remoteproc module" 'exists /usr/lib/modules/7.2.0/kernel/drivers/remoteproc/qcom_q6v5_pas.ko.zst'
 check "initramfs in /boot" 'exists /boot/initramfs-frogger.img'
+initrd=$(mktemp)
+dbg "dump /boot/initramfs-frogger.img $initrd" >/dev/null
+check "initramfs carries the root" 'zstd -dc "$initrd" 2>/dev/null | cpio -i --quiet --to-stdout "etc/cmdline.d/*" 2>/dev/null | grep -q "root=LABEL=mechanix-root rootfstype=ext4 rw"'
+rm -f "$initrd"
 fw=/usr/lib/firmware/updates
 for f in qcom/gen80300_sqe.fw qcom/gen80300_gmu.bin ath11k/WCN6750/hw1.0/board-2.bin \
     qcom/milos/nothing/frogger/{adsp.mbn,adsp_dtb.mbn,adspr.jsn,adsps.jsn,adspua.jsn,battmgr.jsn,wpss.mbn,gen80300_zap.mbn}; do
@@ -38,7 +42,8 @@ check "tqftpserv enabled by preset" 'cat_ /usr/lib/systemd/system-preset/80-mech
 unpacked=$(mktemp -d)
 trap 'rm -rf "$unpacked"' EXIT
 cmdline=$(unpack_bootimg --boot_img "$boot" --out "$unpacked" 2>/dev/null | sed -n 's/^command line args: //p')
-check "boot.img cmdline" '[ "$cmdline" = "console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash root=LABEL=mechanix-root rootfstype=ext4 rw rootwait" ]'
+check "boot.img cmdline" '[ "$cmdline" = "console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash" ]'
+check "boot.img cmdline has no root= (ABL hangs on it)" '! grep -q "root=" <<<"$cmdline"'
 check "boot.img fits boot_a" '[ "$(stat -c %s "$boot")" -lt 100663296 ]'
 
 exit "$fail"

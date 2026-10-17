@@ -54,7 +54,7 @@ check "build-time Mecha repo excludes its kernels" \
 check "root partition label" 'grep -qx "Label=mechanix-root" mkosi.repart.frogger/10-root.conf'
 check "postinst links /init to systemd for frogger" 'grep -q "ln -snf usr/lib/systemd/systemd /init" mkosi.postinst.chroot'
 check "postinst builds a module-less initramfs" \
-    'grep -q "dracut --force --no-hostonly --no-kernel --kver 7.2.0 /boot/initramfs-frogger.img" mkosi.postinst.chroot'
+    'grep -q "dracut --force --no-hostonly --no-kernel --kernel-cmdline \"root=LABEL=mechanix-root rootfstype=ext4 rw\" --kver 7.2.0 /boot/initramfs-frogger.img" mkosi.postinst.chroot'
 check "postinst installs MECHA_SSH_AUTHORIZED_KEY" 'grep -q "MECHA_SSH_AUTHORIZED_KEY" mkosi.postinst.chroot'
 
 exit "$fail"

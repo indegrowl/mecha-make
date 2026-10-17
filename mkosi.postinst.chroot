@@ -94,8 +94,9 @@ fi
 # kernel command line and the initrd's switch-root honours it, so /init must
 # start systemd. The initramfs for boot.img carries no modules: everything
 # needed to mount the root (UFS, ext4) is built into the kernel, and boot_a
-# only holds 96 MiB.
+# only holds 96 MiB. The root is given to dracut here rather than in boot.img:
+# the bootloader hangs before starting the kernel if its cmdline has root=.
 if [[ " ${PROFILES:-} " == *" frogger "* ]]; then
     ln -snf usr/lib/systemd/systemd /init
-    dracut --force --no-hostonly --no-kernel --kver 7.2.0 /boot/initramfs-frogger.img
+    dracut --force --no-hostonly --no-kernel --kernel-cmdline "root=LABEL=mechanix-root rootfstype=ext4 rw" --kver 7.2.0 /boot/initramfs-frogger.img
 fi

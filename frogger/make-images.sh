@@ -14,7 +14,10 @@ out=${2:?usage: make-images.sh <root.raw> <out-dir>}
 boot_dir=${FROGGER_BOOT_DIR:-$(dirname "$0")/out/boot}
 label=mechanix-root
 boot_a_size=100663296 # 96 MiB
-cmdline="console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash root=LABEL=$label rootfstype=ext4 rw rootwait"
+# Never put root= here: the phone's bootloader hangs before starting the kernel
+# when the cmdline contains root=. dracut gets the root from inside the initramfs
+# (mkosi.postinst.chroot, --kernel-cmdline).
+cmdline="console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash"
 
 actual_label=$(e2label "$root" 2>/dev/null || true)
 if [ "$actual_label" != "$label" ]; then

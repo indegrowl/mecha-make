@@ -9,7 +9,9 @@ trap 'rm -rf "$tmp"' EXIT
 fail=0
 check() { if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 
-cmdline='console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash root=LABEL=mechanix-root rootfstype=ext4 rw rootwait'
+# No root= here: Nothing's ABL hangs before starting the kernel if the cmdline has root=.
+# The root comes from the initramfs (dracut --kernel-cmdline).
+cmdline='console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash'
 # Header fields of the phone's working postmarketOS boot.img (c1/boot-pmos-susp2.img).
 header="--header_version 2 --os_version 99.87.36 --os_patch_level 2099-12 --pagesize 0x00001000 --base 0x00000000 --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --second_offset 0x00000000 --tags_offset 0x00000100 --dtb_offset 0x0000000001f00000 --board '' --cmdline '$cmdline'"
 
