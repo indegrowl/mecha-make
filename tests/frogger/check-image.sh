@@ -35,7 +35,9 @@ check "hostname frogger" '[ "$(cat_ /etc/hostname)" = frogger ]'
 check "VARIANT_ID=frogger" 'cat_ /usr/lib/os-release | grep -qx "VARIANT_ID=\"frogger\""'
 check "tqftpserv enabled by preset" 'cat_ /usr/lib/systemd/system-preset/80-mecha-frogger.preset | grep -qx "enable tqftpserv.service"'
 
-cmdline=$(unpack_bootimg --boot_img "$boot" 2>/dev/null | sed -n 's/^command line args: //p')
+unpacked=$(mktemp -d)
+trap 'rm -rf "$unpacked"' EXIT
+cmdline=$(unpack_bootimg --boot_img "$boot" --out "$unpacked" 2>/dev/null | sed -n 's/^command line args: //p')
 check "boot.img cmdline" '[ "$cmdline" = "console=ttyMSM0,115200 console=tty0 clk_ignore_unused pd_ignore_unused mem_sleep_default=s2idle selinux=0 quiet splash root=LABEL=mechanix-root rootfstype=ext4 rw rootwait" ]'
 check "boot.img fits boot_a" '[ "$(stat -c %s "$boot")" -lt 100663296 ]'
 
