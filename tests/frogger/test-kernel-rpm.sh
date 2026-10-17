@@ -19,6 +19,9 @@ check "RPM ships the ADSP remoteproc module" \
 check "RPM ships the ath11k AHB module" \
     'grep -Eq "^(/usr)?/lib/modules/7.2.0/kernel/drivers/net/wireless/ath/ath11k/ath11k_ahb.ko.zst$" <<<"$files"'
 check "no kernel-headers RPM" '! ls frogger/out/rpms/kernel-headers-* >/dev/null 2>&1'
+# Host pahole's module BTF fails validation (-ELOOP); without this flag the kernel
+# refuses every module (evdev, cfg80211, ...): no touch input, no Wi-Fi.
+check "modules load despite BTF validation errors" 'grep -qx "CONFIG_MODULE_ALLOW_BTF_MISMATCH=y" frogger/kernel/frogger.config && grep -qx "CONFIG_MODULE_ALLOW_BTF_MISMATCH=y" frogger/out/kbuild/.config'
 check "Image.gz exists" '[ -s frogger/out/boot/Image.gz ]'
 check "frogger DTB exists" '[ -s frogger/out/boot/milos-nothing-frogger.dtb ]'
 
