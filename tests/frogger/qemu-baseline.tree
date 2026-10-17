@@ -1,0 +1,27 @@
+main	Finalize Scripts	-	dfeaac0f56b2f6f4a2764f69a4461a2e0d228f1b4ceb38ade4ef5af8b707a0b3
+main	Postinstall Scripts	-	24aa47f6987cb650b4e352ef24d2a701585d1787f15f804323cd7ff175c93e92
+main	Postinstall Scripts	-	3196b21d8c465eaa65340eec3996ea4d4fe5d1b32e92502b6ab4bd6b86c036d3
+main	Repart Directories	00-esp.conf	cbf5fe8b25bc4f2caff5b237c69850888ac127e1245dc71e12a9286f9a746742
+main	Repart Directories	10-root.conf	52040e741c0a6ee76eab303a486164a544a053fda0b01aae88997a4836804f48
+main	Skeleton Trees	etc/NetworkManager/conf.d/wifi-powersave-off.conf	5ece25e678c53a2684816b0afbb61baf35583bbb159f0db3db944af130d31a3a
+main	Skeleton Trees	etc/environment.d/libcamera.conf	8ed3ce8f80263ede5616d0743fce8d074ab589891a2c46f5d2959a97054ca33f
+main	Skeleton Trees	etc/greetd/config.toml	d2458280e068a6f7d88f5f51e1af30346318dff524cb833d0a86b3719b986f4c
+main	Skeleton Trees	etc/kernel/devicetree	6e056baf2a7997aee06cc8d7519612c306550022ba41cea1ccef28abe5bb4053
+main	Skeleton Trees	etc/kernel/install.d/51-dracut-rescue.install	link:/dev/null
+main	Skeleton Trees	etc/localtime	link:/usr/share/zoneinfo/UTC
+main	Skeleton Trees	etc/modules-load.d/moal.conf	4315841247efb0d1fca8baf2c2767ca4042e2d684ed13f42a4feaca47a53fbfa
+main	Skeleton Trees	etc/polkit-1/rules.d/10-nm-wifi.rules	0e953509c23a01d941f9f2bc34d5a90233bd4d79e64f02fdb4a3805ea457ce4c
+main	Skeleton Trees	etc/systemd/logind.conf	21a51429e2c8a57ab7e38a731a5f0e0f102c0ec69f3a968b46c3a527f9ecd309
+main	Skeleton Trees	etc/systemd/zram-generator.conf	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+main	Skeleton Trees	preset	enable greetd.service
+main	Skeleton Trees	preset	enable mechanix-system-service.service
+main	Skeleton Trees	preset	enable systemd-timesyncd.service
+main	Skeleton Trees	usr/lib/repart.d/10-root.conf	387c9f711c19a9172daac6644c1fe1d5dd1d223768fbabde4560bf86f64c34ac
+main	Skeleton Trees	usr/lib/systemd/user-preset/00-mecha.preset	bddbd8da22aeb053cd2457eac914c76fa98f4ec0c448afddfb10661121ae3ba7
+main	Skeleton Trees	usr/share/alsa/ucm2/Mecha/Comet/HiFi.conf	6cb49b534b690915266a659774c227d6631a3abd35930831620d0a54f0ee8809
+main	Skeleton Trees	usr/share/alsa/ucm2/Mecha/Comet/comet.conf	c97a87e5f1d2c062c9f24a70bff142244405e6814c06d45feac9de951233e847
+main	Skeleton Trees	usr/share/alsa/ucm2/conf.d/simple-card/MechaSystemsPvt.Ltd.-MechaComet.conf	link:../../Mecha/Comet/comet.conf
+main	Skeleton Trees	usr/share/alsa/ucm2/conf.d/simple-card/mecha-MechaComet-.conf	link:../../Mecha/Comet/comet.conf
+main	Skeleton Trees	usr/share/applications/mechanix-settings.desktop	658e104b89270461a2757ce24bf1b1183b96f797c385693c21b0cca5edccdb84
+main	Skeleton Trees	usr/share/glib-2.0/schemas/000-mecha.gschema.override	870144ed816f426e3164ddf022688e0ce6fcef7a71f604904e60f5406849d1e5
+main	Skeleton Trees	usr/share/glib-2.0/schemas/90_phosh-disable-lock.gschema.override	c98ad810eca52e65882b74c0d97f31dfb9d3a2d7893620a0275eacf3bf237dfa

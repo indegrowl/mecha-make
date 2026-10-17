@@ -1,0 +1,48 @@
+main	Extra Trees	etc/NetworkManager/system-connections/mecha-usb.nmconnection	667a4bbe61ac2480fab0a822b4842b7bbdb078d1f4828d5d18806e3deedc5f4c
+main	Extra Trees	etc/dnsmasq.d/mecha-usb.conf	e734aa74382ea0070451ee2f788310725bacac425f885136fca735cae2840cbb
+main	Extra Trees	etc/greetd/config.toml	7554fc1e773f43b6f60dba36e645e6ecc2e0d7da771d16ac3f1a3c49be84a207
+main	Extra Trees	etc/skel/.config/nwg-bar/bar.json	12951456d103b8aab2402015da72f98af2c18ecc76c44a58e9946b6ca37302ce
+main	Extra Trees	etc/skel/.config/nwg-bar/style.css	4242a022505dcac5f8d66e97e362209e4c3456a0e4d362d718510891e96bba68
+main	Extra Trees	etc/skel/.config/nwg-drawer/drawer.css	69aeb4df2e1a965ab31d6f784db3fcd0611fb2f553642161fe155e145ceade9b
+main	Extra Trees	etc/skel/.config/waybar/config.jsonc	fb294dbe46d0f85bbdec7b94aed26af10c7ac15ba1b5a0b0486aad90002216fe
+main	Extra Trees	etc/skel/.config/waybar/style.css	10333868f197ea7fd8393026929b327ccc8c3f6527d9e39c2690149d6058645c
+main	Extra Trees	etc/tmpfiles.d/mecha-usb.conf	955d56489970a16c91ffc45ef4df1b192f83276f494b1e68833438333c1deb5d
+main	Extra Trees	etc/usb-signaller/usb-signaller.toml	8b662839df30b3a98ea0552ecd07c2e8c5719e12291c990f74cc36921aed7336
+main	Extra Trees	preset	enable comet-backlight.service
+main	Extra Trees	preset	enable usb-signaller.service
+main	Extra Trees	usr/bin/mechanix-lock	23ec20e9b6457b68609cff559743232a3966e7c937936c869d155c294b1a7af6
+main	Extra Trees	usr/bin/mechanix-session	fcb3b4351cd846d9dcbca2958dc6e1f05728db75e05c6d802e6605434bb9bf8d
+main	Extra Trees	usr/lib/systemd/system/comet-backlight.service	3658847d706f1fdfa0825eb8df9b9a9dd62e60c641ab83ab0c00138699bae087
+main	Extra Trees	usr/lib/systemd/system/usb-signaller-developer-mode.service	96290c37cff3a28ac3fb0c9fd17c75a1b79d0e86c35525c8a3d35e3e1f4f35d8
+main	Extra Trees	usr/lib/systemd/system/usb-signaller.service.d/00-libcomposite.conf	adc64a88f5a63434c3b9ab70317cf67f4dbfe42ab2a7ee51385851b44aec5832
+main	Extra Trees	usr/lib/udev/rules.d/90-mecha-usb0-managed.rules	dddba182caa834a58b4bfe919e2273754b6f8ffa5ed4eec52f07e80c2c017ae1
+main	Finalize Scripts	-	dfeaac0f56b2f6f4a2764f69a4461a2e0d228f1b4ceb38ade4ef5af8b707a0b3
+main	Postinstall Scripts	-	24aa47f6987cb650b4e352ef24d2a701585d1787f15f804323cd7ff175c93e92
+main	Postinstall Scripts	-	3196b21d8c465eaa65340eec3996ea4d4fe5d1b32e92502b6ab4bd6b86c036d3
+main	Repart Directories	00-esp.conf	cbf5fe8b25bc4f2caff5b237c69850888ac127e1245dc71e12a9286f9a746742
+main	Repart Directories	10-root.conf	52040e741c0a6ee76eab303a486164a544a053fda0b01aae88997a4836804f48
+main	Sandbox Trees	etc/yum.repos.d/mecha-comet-rpm.repo	3c2fde7241b6ad04db395415b5260d17a58df4f1795bb62d25851b22758f2296
+main	Skeleton Trees	etc/NetworkManager/conf.d/wifi-powersave-off.conf	5ece25e678c53a2684816b0afbb61baf35583bbb159f0db3db944af130d31a3a
+main	Skeleton Trees	etc/environment.d/libcamera.conf	8ed3ce8f80263ede5616d0743fce8d074ab589891a2c46f5d2959a97054ca33f
+main	Skeleton Trees	etc/greetd/config.toml	d2458280e068a6f7d88f5f51e1af30346318dff524cb833d0a86b3719b986f4c
+main	Skeleton Trees	etc/kernel/devicetree	6e056baf2a7997aee06cc8d7519612c306550022ba41cea1ccef28abe5bb4053
+main	Skeleton Trees	etc/kernel/install.d/51-dracut-rescue.install	link:/dev/null
+main	Skeleton Trees	etc/localtime	link:/usr/share/zoneinfo/UTC
+main	Skeleton Trees	etc/modules-load.d/moal.conf	4315841247efb0d1fca8baf2c2767ca4042e2d684ed13f42a4feaca47a53fbfa
+main	Skeleton Trees	etc/polkit-1/rules.d/10-nm-wifi.rules	0e953509c23a01d941f9f2bc34d5a90233bd4d79e64f02fdb4a3805ea457ce4c
+main	Skeleton Trees	etc/systemd/logind.conf	21a51429e2c8a57ab7e38a731a5f0e0f102c0ec69f3a968b46c3a527f9ecd309
+main	Skeleton Trees	etc/systemd/zram-generator.conf	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+main	Skeleton Trees	etc/yum.repos.d/mecha-comet-rpm.repo	4bf856b4249bffbcd0a98f41f8f671d795e52a9ee7d24848bb8f0ad6914ae112
+main	Skeleton Trees	preset	enable greetd.service
+main	Skeleton Trees	preset	enable mechanix-system-service.service
+main	Skeleton Trees	preset	enable systemd-timesyncd.service
+main	Skeleton Trees	usr/lib/repart.d/10-root.conf	387c9f711c19a9172daac6644c1fe1d5dd1d223768fbabde4560bf86f64c34ac
+main	Skeleton Trees	usr/lib/systemd/system-sleep/media-unbind	f5080b107b746a78bdb0dd0ea8c5e250a8b5f12910c38a1d0a026028c2825052
+main	Skeleton Trees	usr/lib/systemd/user-preset/00-mecha.preset	bddbd8da22aeb053cd2457eac914c76fa98f4ec0c448afddfb10661121ae3ba7
+main	Skeleton Trees	usr/share/alsa/ucm2/Mecha/Comet/HiFi.conf	6cb49b534b690915266a659774c227d6631a3abd35930831620d0a54f0ee8809
+main	Skeleton Trees	usr/share/alsa/ucm2/Mecha/Comet/comet.conf	c97a87e5f1d2c062c9f24a70bff142244405e6814c06d45feac9de951233e847
+main	Skeleton Trees	usr/share/alsa/ucm2/conf.d/simple-card/MechaSystemsPvt.Ltd.-MechaComet.conf	link:../../Mecha/Comet/comet.conf
+main	Skeleton Trees	usr/share/alsa/ucm2/conf.d/simple-card/mecha-MechaComet-.conf	link:../../Mecha/Comet/comet.conf
+main	Skeleton Trees	usr/share/applications/mechanix-settings.desktop	658e104b89270461a2757ce24bf1b1183b96f797c385693c21b0cca5edccdb84
+main	Skeleton Trees	usr/share/glib-2.0/schemas/000-mecha.gschema.override	870144ed816f426e3164ddf022688e0ce6fcef7a71f604904e60f5406849d1e5
+main	Skeleton Trees	usr/share/glib-2.0/schemas/90_phosh-disable-lock.gschema.override	c98ad810eca52e65882b74c0d97f31dfb9d3a2d7893620a0275eacf3bf237dfa

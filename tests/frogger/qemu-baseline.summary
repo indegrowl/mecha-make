@@ -1,0 +1,579 @@
+IMAGE: tools
+
+    CONFIG:
+                           Profiles: misc
+                                     package-manager
+                                     runtime
+                       Dependencies: none
+                    Minimum Version: none
+                  Configure Scripts: none
+                   Pass Environment: none
+
+    DISTRIBUTION:
+                       Distribution: fedora
+                            Release: 44
+                       Architecture: x86-64
+                             Mirror: default
+                           Snapshot: none
+               Local Mirror (build): none
+           Repo Signature/Key check: yes
+              Fetch Repository Keys: no
+                       Repositories: none
+
+    OUTPUT:
+                      Output Format: directory
+                   Manifest Formats: (none)
+                             Output: mkosi.tools
+                        Compression: none
+                  Compression Level: 3
+                   Output Directory: /build
+                        Output Mode: default
+                           Image ID: None
+                    Split Artifacts: uki
+                                     kernel
+                                     initrd
+Repart Directories: <see .tree>
+                        Sector Size: default
+                            Overlay: no
+                      Clean Scripts: none
+
+    CONTENT:
+                           Packages: acl
+                                     apk
+                                     apt
+                                     apt-utils
+                                     archlinux-keyring
+                                     attr
+                                     bash
+                                     bash
+                                     btrfs-progs
+                                     ca-certificates
+                                     coreutils
+                                     cpio
+                                     createrepo_c
+                                     curl
+                                     debian-keyring
+                                     diffutils
+                                     distribution-gpg-keys
+                                     dnf5
+                                     dnf5-plugins
+                                     dosfstools
+                                     e2fsprogs
+                                     edk2-ovmf
+                                     erofs-utils
+                                     file
+                                     findutils
+                                     gawk
+                                     git-core
+                                     grep
+                                     grub2-tools
+                                     jq
+                                     keyutils
+                                     kmod
+                                     less
+                                     libseccomp
+                                     man
+                                     man-pages
+                                     mtools
+                                     nano
+                                     opensc
+                                     openssh-clients
+                                     openssl
+                                     pacman
+                                     pkcs11-provider
+                                     policycoreutils
+                                     python3
+                                     python3-pefile
+                                     qemu-img
+                                     qemu-kvm-core
+                                     qemu-system-aarch64-core
+                                     qemu-system-ppc-core
+                                     qemu-system-s390x-core
+                                     qemu-ui-sdl
+                                     sbsigntools
+                                     sed
+                                     shadow-utils
+                                     socat
+                                     squashfs-tools
+                                     strace
+                                     swtpm
+                                     swtpm-tools
+                                     systemd
+                                     systemd-container
+                                     systemd-journal-remote
+                                     systemd-udev
+                                     systemd-ukify
+                                     tar
+                                     ubu-keyring
+                                     virt-firmware
+                                     virtiofsd
+                                     which
+                                     xfsprogs
+                                     xz
+                                     zstd
+                                     zypper
+                     Build Packages: none
+                  Volatile Packages: none
+                Package Directories: none
+       Volatile Package Directories: none
+                 With Documentation: yes
+
+                         Base Trees: none
+Skeleton Trees: <see .tree>
+Extra Trees: <see .tree>
+                    Remove Packages: none
+                       Remove Files: none
+     Clean Package Manager Metadata: auto
+                  Source Date Epoch: none
+
+                       Sync Scripts: none
+                    Prepare Scripts: /tmp/<tmp>/resources/mkosi-tools/mkosi.prepare
+                      Build Scripts: none
+Postinstall Scripts: <see .tree>
+Finalize Scripts: <see .tree>
+                 Postoutput Scripts: none
+
+                           Bootable: auto
+                         Bootloader: systemd-boot
+                    BIOS Bootloader: none
+                    Shim Bootloader: none
+              Unified Kernel Images: auto
+        Unified Kernel Image Format: None
+      Unified Kernel Image Profiles: none
+                            Initrds: none
+                    Initrd Profiles: none
+                    Initrd Packages: none
+           Initrd Volatile Packages: none
+                        Devicetrees: none
+                             Splash: none
+                Kernel Command Line: none
+                     Kernel Modules: none
+        Kernel Modules Include Host: no
+                     Firmware Files: none
+              Kernel Modules Initrd: yes
+              Kernel Initrd Modules: none
+ Kernel Modules Initrd Include Host: no
+
+                             Locale: default
+                    Locale Messages: default
+                             Keymap: default
+                           Timezone: default
+                           Hostname: default
+                      Root Password: (default)
+                         Root Shell: default
+                         Machine ID: none
+
+                          Autologin: no
+                        Make Initrd: no
+                                SSH: auto
+                    SELinux Relabel: auto
+
+IMAGE: default-initrd
+
+    OUTPUT:
+                      Output Format: cpio
+                   Manifest Formats: (none)
+                             Output: initrd.cpio.zst
+                        Compression: zstd
+                  Compression Level: 3
+                   Output Directory: /build
+                        Output Mode: default
+                           Image ID: mechanix-os-qemu
+                    Split Artifacts: none
+Repart Directories: <see .tree>
+                        Sector Size: 512
+                            Overlay: no
+                      Clean Scripts: none
+
+    CONTENT:
+                           Packages: abattis-cantarell-fonts
+                                     bash
+                                     btrfs-progs
+                                     dosfstools
+                                     e2fsprogs
+                                     gzip
+                                     less
+                                     libfido2
+                                     libseccomp
+                                     plymouth
+                                     plymouth-system-theme
+                                     procps-ng
+                                     systemd
+                                     tpm2-tss
+                                     udev
+                                     util-linux-core
+                                     xfsprogs
+                     Build Packages: none
+                  Volatile Packages: none
+                Package Directories: none
+       Volatile Package Directories: none
+                 With Documentation: no
+
+                         Base Trees: none
+Skeleton Trees: <see .tree>
+Extra Trees: <see .tree>
+                    Remove Packages: none
+                       Remove Files: /usr/lib/systemd/catalog
+                                     /etc/udev/hwdb.d
+                                     /usr/lib/udev/hwdb.d
+                                     /etc/services
+                                     /usr/lib/modules/*/vmlinuz*
+                                     /usr/lib/modules/*/vmlinux*
+                                     /usr/lib/modules/*/System.map
+                                     /var/cache
+                                     /var/log
+     Clean Package Manager Metadata: enabled
+                  Source Date Epoch: none
+
+                       Sync Scripts: none
+                    Prepare Scripts: none
+                      Build Scripts: none
+Postinstall Scripts: <see .tree>
+Finalize Scripts: <see .tree>
+                 Postoutput Scripts: none
+
+                           Bootable: disabled
+                         Bootloader: systemd-boot
+                    BIOS Bootloader: none
+                    Shim Bootloader: none
+              Unified Kernel Images: auto
+        Unified Kernel Image Format: None
+      Unified Kernel Image Profiles: none
+                            Initrds: none
+                    Initrd Profiles: none
+                    Initrd Packages: none
+           Initrd Volatile Packages: none
+                        Devicetrees: none
+                             Splash: none
+                Kernel Command Line: none
+                     Kernel Modules: ahci
+                                     amd_atl
+                                     amd_ctl
+                                     amd-pmc
+                                     amd64_edac
+                                     atkbd
+                                     autofs4
+                                     binfmt_misc
+                                     btrfs
+                                     cdrom
+                                     cfg80211
+                                     configfs
+                                     crc-ccitt
+                                     dm-crypt
+                                     dm-integrity
+                                     dm-mod
+                                     dm-multipath
+                                     dm-raid
+                                     dm-verity
+                                     dmi-sysfs
+                                     drm_buddy
+                                     drm_display_helper
+                                     edac_mce_amd
+                                     efi-pstore
+                                     efivarfs
+                                     erofs
+                                     evdev
+                                     ext4
+                                     hid-generic
+                                     i2c-algo-bit
+                                     i2c_hid_acpi
+                                     i2c-mux
+                                     i2c-smbus
+                                     i8042
+                                     intel-gtt
+                                     intel_pmc_ssram_telemetry
+                                     intel_rapl_common
+                                     intel-uncore-frequency-common
+                                     intel-vsec
+                                     kvm
+                                     libphy
+                                     loop
+                                     mdio_devres
+                                     mei
+                                     mxm-wmi
+                                     nvme
+                                     nvmet-tcp
+                                     overlay
+                                     parport
+                                     pmt_telemetry
+                                     qemu_fw_cfg
+                                     raid[0-9]*
+                                     rapl
+                                     scsi_mod
+                                     sd_mod
+                                     serio
+                                     sg
+                                     skx_edac_common
+                                     snd-intel-dspcfg
+                                     snd-soc-hda-codec
+                                     squashfs
+                                     thunderbolt_net
+                                     tpm_tis
+                                     ttm
+                                     typec_ucsi
+                                     ucsi_acpi
+                                     usbhid
+                                     usb-storage
+                                     uvc
+                                     vfat
+                                     video
+                                     videobuf2-v4l2
+                                     videobuf2-vmalloc
+                                     virtio_balloon
+                                     virtio_blk
+                                     virtio_console
+                                     virtio_dma_buf
+                                     virtio_mmio
+                                     virtio_net
+                                     virtio_pci
+                                     virtio_scsi
+                                     virtio-rng
+                                     virtiofs
+                                     vmd
+                                     vmw_vsock_virtio_transport
+                                     vsock
+                                     watchdog
+                                     wmi
+                                     wmi-bmof
+                                     x_tables
+                                     xfs
+                                     xhci-pci-renesas
+                                     /fs/nls/
+                                     crypto/
+                                     -/drivers/crypto/
+                                     ccp_crypto
+                                     zram
+                                     nfnetlink
+        Kernel Modules Include Host: no
+                     Firmware Files: none
+              Kernel Modules Initrd: yes
+              Kernel Initrd Modules: none
+ Kernel Modules Initrd Include Host: no
+
+                             Locale: C.UTF-8
+                    Locale Messages: default
+                             Keymap: default
+                           Timezone: default
+                           Hostname: comet
+                      Root Password: (set)
+                         Root Shell: default
+                         Machine ID: none
+
+                          Autologin: no
+                        Make Initrd: yes
+                                SSH: auto
+                    SELinux Relabel: auto
+
+IMAGE: main
+
+    CONFIG:
+                           Profiles: qemu
+                       Dependencies: default-initrd
+                    Minimum Version: none
+                  Configure Scripts: none
+                   Pass Environment: none
+
+    DISTRIBUTION:
+                       Distribution: fedora
+                            Release: 44
+                       Architecture: x86-64
+                             Mirror: default
+                           Snapshot: none
+               Local Mirror (build): none
+           Repo Signature/Key check: yes
+              Fetch Repository Keys: no
+                       Repositories: none
+
+    OUTPUT:
+                      Output Format: disk
+                   Manifest Formats: (none)
+                             Output: mechanix-os-qemu.raw
+                        Compression: none
+                  Compression Level: 3
+                   Output Directory: /build
+                        Output Mode: default
+                           Image ID: mechanix-os-qemu
+                    Split Artifacts: uki
+                                     kernel
+                                     initrd
+Repart Directories: <see .tree>
+                        Sector Size: 512
+                            Overlay: no
+                      Clean Scripts: none
+
+    CONTENT:
+                           Packages: @base-graphical
+                                     @core
+                                     @networkmanager-submodules
+                                     @standard
+                                     NetworkManager-config-connectivity-fedora
+                                     alacritty
+                                     fontawesome-fonts-all
+                                     gnome-keyring
+                                     gnome-keyring-pam
+                                     greetd
+                                     gsettings-desktop-schemas
+                                     htop
+                                     jetbrains-mono-fonts
+                                     kernel
+                                     mutter
+                                     nano
+                                     nss
+                                     openssh-server
+                                     openssl
+                                     phoc
+                                     phosh
+                                     phosh-mobile-settings
+                                     seatd
+                                     sudo
+                                     systemd
+                                     systemd-boot-unsigned
+                                     systemd-pam
+                                     systemd-udev
+                                     weston-demo
+                                     xdg-user-dirs
+                                     xorg-x11-server-Xwayland
+                     Build Packages: none
+                  Volatile Packages: none
+                Package Directories: none
+       Volatile Package Directories: none
+                 With Documentation: yes
+
+                         Base Trees: none
+Skeleton Trees: <see .tree>
+Extra Trees: <see .tree>
+                    Remove Packages: none
+                       Remove Files: none
+     Clean Package Manager Metadata: auto
+                  Source Date Epoch: none
+
+                       Sync Scripts: none
+                    Prepare Scripts: none
+                      Build Scripts: none
+Postinstall Scripts: <see .tree>
+Finalize Scripts: <see .tree>
+                 Postoutput Scripts: none
+
+                           Bootable: enabled
+                         Bootloader: systemd-boot
+                    BIOS Bootloader: none
+                    Shim Bootloader: none
+              Unified Kernel Images: none
+        Unified Kernel Image Format: None
+      Unified Kernel Image Profiles: none
+                            Initrds: /build/initrd
+                    Initrd Profiles: plymouth
+                    Initrd Packages: none
+           Initrd Volatile Packages: none
+                        Devicetrees: none
+                             Splash: none
+                Kernel Command Line: selinux=0
+                                     quiet
+                                     splash
+                     Kernel Modules: none
+        Kernel Modules Include Host: no
+                     Firmware Files: none
+              Kernel Modules Initrd: no
+              Kernel Initrd Modules: none
+ Kernel Modules Initrd Include Host: no
+
+                             Locale: default
+                    Locale Messages: default
+                             Keymap: default
+                           Timezone: default
+                           Hostname: comet
+                      Root Password: (set)
+                         Root Shell: default
+                         Machine ID: none
+
+                          Autologin: yes
+                        Make Initrd: no
+                                SSH: auto
+                    SELinux Relabel: auto
+
+         VALIDATION:
+                    UEFI SecureBoot: no
+         UEFI SecureBoot AutoEnroll: yes
+             SecureBoot Signing Key: none
+      SecureBoot Signing Key Source: file
+             SecureBoot Certificate: none
+      SecureBoot Certificate Source: file
+               SecureBoot Sign Tool: auto
+                             Verity: auto
+                 Verity Signing Key: none
+          Verity Signing Key Source: file
+                 Verity Certificate: none
+          Verity Certificate Source: file
+                 Sign Expected PCRs: auto
+          Expected PCRs Signing Key: none
+           Expected PCRs Key Source: file
+          Expected PCRs Certificate: none
+   Expected PCRs Certificate Source: file
+                         Passphrase: none
+                           Checksum: no
+                               Sign: no
+                       OpenPGP Tool: gpg
+                            GPG Key: (default)
+
+    BUILD CONFIGURATION:
+                         Tools Tree: /build/mkosi.tools
+            Tools Tree Certificates: yes
+
+                 Extra Search Paths: none
+                        Incremental: yes
+             Use Only Package Cache: auto
+Sandbox Trees: <see .tree>
+                Workspace Directory: /var/tmp
+                    Cache Directory: /build/mkosi.cache
+                          Cache Key: &d~&r~&a~&I
+            Package Cache Directory: /build/mkosi.pkgcache
+                    Build Directory: none
+                          Build Key: &d~&r~&a
+                     Use Subvolumes: auto
+                     Repart Offline: yes
+                       Save History: no
+                      Build Sources: /build
+            Build Sources Ephemeral: no
+                 Script Environment: none
+                  Environment Files: none
+         Run Tests in Build Scripts: yes
+               Scripts With Network: no
+
+                          Proxy URL: none
+             Proxy Peer Certificate: /etc/ssl/certs/ca-certificates.crt
+           Proxy Client Certificate: none
+                   Proxy Client Key: none
+
+    HOST CONFIGURATION:
+                    NSpawn Settings: none
+                          Ephemeral: False
+                        Credentials: none
+          Extra Kernel Command Line: none
+                      Runtime Trees: none
+                       Runtime Size: none
+                    Runtime Network: user
+              Runtime Build Sources: False
+                          Bind User: no
+                    Unit Properties: none
+                    SSH Signing Key: none
+                    SSH Certificate: none
+                            Machine: main
+                    Forward Journal: none
+       Register guest with machined: auto
+                Storage Target Mode: auto
+
+            Virtual Machine Monitor: qemu
+                            Console: gui
+                          CPU Cores: 4
+                                RAM: 4.0G
+                             MaxMem: none
+                                KVM: auto
+                                CXL: False
+                              VSock: auto
+                VSock Connection ID: auto
+                                TPM: disabled
+                           Firmware: auto
+                 Firmware Variables: none
+                              Linux: none
+               QEMU Extra Arguments: -display
+                                     vnc=:0
