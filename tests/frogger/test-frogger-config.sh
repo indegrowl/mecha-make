@@ -51,6 +51,9 @@ check "dnf never replaces the kernel" \
     'grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*" mkosi.extra.frogger/etc/dnf/libdnf5.conf.d/90-frogger-kernel.conf'
 check "build-time Mecha repo excludes its kernels" \
     'grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*" mkosi.sandbox.frogger/etc/yum.repos.d/mecha-comet-rpm.repo'
+check "build-time Mecha repo keeps priority=1" 'grep -qx "priority=1" mkosi.sandbox.frogger/etc/yum.repos.d/mecha-comet-rpm.repo'
+check "build-time Mecha repo differs from comet only by the kernel exclude" \
+    '[ "$(grep -vE "^(#|excludepkgs=)" mkosi.sandbox.frogger/etc/yum.repos.d/mecha-comet-rpm.repo)" = "$(grep -vE "^#" mkosi.sandbox/etc/yum.repos.d/mecha-comet-rpm.repo)" ]'
 check "root partition label" 'grep -qx "Label=mechanix-root" mkosi.repart.frogger/10-root.conf'
 check "postinst links /init to systemd for frogger" 'grep -q "ln -snf usr/lib/systemd/systemd /init" mkosi.postinst.chroot'
 check "postinst builds a module-less initramfs" \
