@@ -23,3 +23,6 @@ mkosi.pkgcache/*
 # Scratch logs from manual `mkosi build ... | tee build.log`-style runs.
 build.log
 vm.log
+
+# frogger build outputs (kernel build dir, RPMs, images)
+frogger/out/
