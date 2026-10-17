@@ -45,6 +45,14 @@ frogger_preflight() {
         echo "no kernel RPM in frogger/out/rpms (run frogger/build-kernel.sh)"
         ok=1
     fi
+    # frogger/make-images.sh runs on the host after the image build.
+    local tool
+    for tool in mkbootimg img2simg debugfs e2label; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            echo "missing host tool: $tool"
+            ok=1
+        fi
+    done
     local scratch
     scratch=$(mktemp -d)
     frogger/stage-firmware.sh "" "$scratch/fw" >/dev/null 2>"$scratch/err" || { cat "$scratch/err"; ok=1; }

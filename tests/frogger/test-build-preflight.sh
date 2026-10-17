@@ -38,6 +38,12 @@ run; rc=$?
 check "missing firmware: exit 1" '[ $rc -eq 1 ] && grep -qx "missing firmware: wpss.mbn" "$tmp/out"'
 
 echo wpss.mbn >"$tmp/fw/wpss.mbn"
+# A host without mkbootimg: every other host tool stays on PATH.
+mkdir "$tmp/bin"
+for f in /usr/bin/*; do [ "$(basename "$f")" = mkbootimg ] || ln -s "$f" "$tmp/bin/"; done
+(cd "$tmp/repo" && PATH=$tmp/bin FROGGER_FW_DIR=$tmp/fw ./build.sh --profile=frogger --preflight-only) >"$tmp/out" 2>&1; rc=$?
+check "missing host tool: exit 1" '[ $rc -eq 1 ] && grep -qx "missing host tool: mkbootimg" "$tmp/out"'
+
 run; rc=$?
 check "all inputs present: exit 0" '[ $rc -eq 0 ] || { cat "$tmp/out"; false; }'
 check "preflight never builds" '! grep -q "Building profile" "$tmp/out"'
