@@ -114,3 +114,50 @@ chmod +x run-qemu.sh
 
 The comet image exposes a USB ethernet gadget (`usb0` = `172.16.42.1/24`) on
 the USB-C/PD port. Use `ssh mecha@172.16.42.1` to connect to the device. Only enabled for the comet profile.
+
+## Nothing Phone (4a) (frogger)
+
+The `frogger` profile builds the same Mechanix OS as `comet` for the Nothing
+Phone (4a). The phone's bootloader boots an Android boot image, so the build
+produces `boot.img` (kernel, DTB, initramfs) and `userdata.img` (the root
+filesystem, written straight onto the `userdata` partition).
+
+The phone must already have an unlocked bootloader, `vbmeta_a` with
+verification disabled and a zeroed `dtbo_a`.
+
+### Inputs (all local, never committed)
+
+- `mkosi.env` with `MECHA_USER_PASSWORD` and `MECHANIX_LOCKSCREEN_PIN` (both
+  required for frogger), and optionally `MECHA_SSH_AUTHORIZED_KEY` (a public key
+  installed for `mecha`).
+- The kernel: `frogger/build-kernel.sh` cross-builds `../linux` (branch
+  `milos-7.2.y`, override with `KERNEL_SRC`) with clang and packages it as
+  `frogger/out/rpms/kernel-7.2.0-*.frogger.aarch64.rpm`. Needs `rpmbuild`.
+- The firmware (proprietary, from the phone): the 11 files listed in
+  `frogger/stage-firmware.sh`, read from `$FROGGER_FW_DIR`
+  (default `../pmaports/device/testing/firmware-nothing-frogger`).
+
+On an x86_64 host the arm64 image builds under emulation, so `qemu-user-static`
+with binfmt must be registered.
+
+### Build
+
+```sh
+frogger/build-kernel.sh
+./build.sh --profile=frogger
+```
+
+`./build.sh --profile=frogger --preflight-only` only checks the inputs. The
+images and `SHA256SUMS` end up in `frogger/out/images/`.
+
+### Flash
+
+```sh
+frogger/flash-frogger.sh userdata   # wipes userdata
+frogger/flash-frogger.sh ramboot    # boots boot.img without flashing it
+frogger/flash-frogger.sh boot_a     # only after the RAM boot works
+```
+
+Enter fastboot from Linux (`systemctl reboot --reboot-argument=bootloader`),
+not with the buttons. The kernel is never updated by `dnf`: rebuild it, test it
+with `ramboot`, then flash `boot_a`.
