@@ -159,5 +159,20 @@ frogger/flash-frogger.sh boot_a     # only after the RAM boot works
 ```
 
 Enter fastboot from Linux (`systemctl reboot --reboot-argument=bootloader`),
-not with the buttons. The kernel is never updated by `dnf`: rebuild it, test it
-with `ramboot`, then flash `boot_a`.
+not with the buttons.
+
+### Kernel updates
+
+`dnf` never updates the kernel on the phone: the kernel in `boot_a` and its
+modules in `/usr/lib/modules/7.2.0` must come from the same build.
+
+```sh
+frogger/build-kernel.sh && ./build.sh --profile=frogger
+frogger/kernel-update.sh            # replaces the kernel RPM (modules) on the phone
+# reboot to the bootloader from Linux, then:
+frogger/flash-frogger.sh ramboot    # test the new boot.img
+frogger/flash-frogger.sh boot_a     # only if it works
+```
+
+Host tools needed by `frogger/make-images.sh`: `mkbootimg`, `img2simg`
+(android-tools), `debugfs`, `e2label` (e2fsprogs). The preflight checks them.
