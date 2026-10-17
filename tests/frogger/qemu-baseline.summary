@@ -535,7 +535,6 @@ Sandbox Trees: <see .tree>
                       Build Sources: /build
             Build Sources Ephemeral: no
                  Script Environment: none
-                  Environment Files: none
          Run Tests in Build Scripts: yes
                Scripts With Network: no
 

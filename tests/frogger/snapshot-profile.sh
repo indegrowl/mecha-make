@@ -34,7 +34,7 @@ import hashlib, os, re, sys
 raw, repo, out = sys.argv[1:]
 TREES = {"Skeleton Trees", "Extra Trees", "Sandbox Trees", "Repart Directories"}
 SCRIPTS = {"Postinstall Scripts", "Finalize Scripts"}
-DROP = {"Seed", "Image Version"}
+DROP = {"Seed", "Image Version", "Environment Files"}  # Environment Files: the local, gitignored mkosi.env
 
 summary, fields, image, key = [], {}, None, None
 for line in open(raw):
