@@ -17,16 +17,17 @@ check "kernel from the frogger RPM" 'rpm -q kernel | grep -q "^kernel-7.2.0-.*\.
 check "root filesystem grown (> 100 GB)" '[ "$(df -B1 --output=size / | tail -1)" -gt 100000000000 ]'
 check "root mounted read-write" 'findmnt -no OPTIONS / | grep -q "^rw"'
 check "panel connected" '[ "$(cat /sys/class/drm/card0-DSI-1/status)" = connected ]'
-for p in mechanix-compositor waybar nwg-drawer; do
-    check "$p running" "pgrep -x $p"
+# Match the full command line: process names are cut to 15 characters.
+for p in mechanix-compositor waybar nwg-drawer mechanix-keyboard; do
+    check "$p running" "pgrep -f \"^(/usr/bin/)?$p( |$)\""
 done
-check "mechanix-keyboard running" 'pgrep -f mechanix-keyboard'
 for fw in adsp.mbn wpss.mbn; do
     check "remoteproc $fw running" "grep -l $fw /sys/class/remoteproc/*/firmware | sed 's/firmware\$/state/' | xargs cat | grep -qx running"
 done
 check "battery reported" '[ -e /sys/class/power_supply/qcom-battmgr-bat/capacity ]'
 check "charging on USB power" 'grep -Eqx "Charging|Full" /sys/class/power_supply/qcom-battmgr-bat/status'
 check "Wi-Fi radio enabled" '[ "$(nmcli -t radio wifi)" = enabled ]'
-check "dnf offers no kernel upgrade" '[ -z "$(dnf -q repoquery --upgrades "kernel*" 2>/dev/null)" ]'
+# kernel-headers (userspace API headers) may upgrade; the kernel itself must not.
+check "dnf offers no kernel upgrade" '[ -z "$(dnf -q repoquery --upgrades kernel kernel-core "kernel-modules*" 2>/dev/null)" ]'
 exit $fail
 EOF
