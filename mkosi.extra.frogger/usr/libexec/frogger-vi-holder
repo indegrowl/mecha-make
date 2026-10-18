@@ -1,0 +1,42 @@
+#!/bin/bash
+# Keep the speaker amplifiers' V/I feedback capture open while the speakers
+# play, so DSP speaker protection gets its sense data. The kernel only raises
+# the speaker volume cap while this capture runs and protection is active.
+set -u
+CARD_ID=Phone4a		# /proc/asound/cardN/id of "Nothing Phone (4a)"
+POLL=0.5
+IDLE_STOP=5		# seconds without playback before releasing the capture
+
+card_index() {
+	local f
+	for f in /proc/asound/card*/id; do
+		if [ "$(cat "$f" 2>/dev/null)" = "$CARD_ID" ]; then
+			f=${f%/id}
+			echo "${f#/proc/asound/card}"
+			return 0
+		fi
+	done
+	return 1
+}
+
+pid=
+idle=0
+trap '[ -n "$pid" ] && kill "$pid" 2>/dev/null; exit 0' TERM INT
+while :; do
+	c=$(card_index) || { sleep 2; continue; }
+	if grep -q RUNNING "/proc/asound/card$c/pcm0p/sub0/status" 2>/dev/null; then
+		idle=0
+		if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+			arecord -q -D "hw:$c,1" -f S32_LE -c 2 -r 48000 -t raw /dev/null &
+			pid=$!
+		fi
+	elif [ -n "$pid" ]; then
+		idle=$((idle + 1))
+		if [ "$idle" -ge $((IDLE_STOP * 2)) ]; then
+			kill "$pid" 2>/dev/null
+			wait "$pid" 2>/dev/null
+			pid=
+		fi
+	fi
+	sleep "$POLL"
+done

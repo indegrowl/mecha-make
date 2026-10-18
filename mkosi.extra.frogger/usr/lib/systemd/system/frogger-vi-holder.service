@@ -1,0 +1,11 @@
+[Unit]
+Description=Hold the speaker V/I feedback capture open during playback (Nothing Phone (4a))
+After=sound.target
+
+[Service]
+ExecStart=/usr/libexec/frogger-vi-holder
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
