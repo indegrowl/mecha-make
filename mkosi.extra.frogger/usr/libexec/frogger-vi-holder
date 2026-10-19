@@ -27,7 +27,7 @@ while :; do
 	if grep -q RUNNING "/proc/asound/card$c/pcm0p/sub0/status" 2>/dev/null; then
 		idle=0
 		if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
-			arecord -q -D "hw:$c,1" -f S32_LE -c 2 -r 48000 -t raw /dev/null &
+			arecord -q -D "hw:$c,1" -f S16_LE -c 2 -r 48000 -t raw /dev/null &
 			pid=$!
 		fi
 	elif [ -n "$pid" ]; then
