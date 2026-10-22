@@ -1,7 +1,7 @@
 From 79c7c1cb52e98978ca6af8f2afc50655d5fc78b5 Mon Sep 17 00:00:00 2001
 From: indegrowl <indegrowl.mail@gmail.com>
 Date: Thu, 22 Oct 2026 15:57:08 +0530
-Subject: [PATCH 1/2] avcodec/v4l2_buffers: copy decoded frames out of the
+Subject: [PATCH 1/3] avcodec/v4l2_buffers: copy decoded frames out of the
  capture buffers
 
 A capture reinit on a resolution change waits for every reference to the

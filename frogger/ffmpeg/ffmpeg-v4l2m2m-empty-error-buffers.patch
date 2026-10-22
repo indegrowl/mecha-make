@@ -1,0 +1,37 @@
+From c9b1c30bcec71ee8e43abb22ed00be26790c8ff3 Mon Sep 17 00:00:00 2001
+From: indegrowl <indegrowl.mail@gmail.com>
+Date: Thu, 22 Oct 2026 19:22:48 +0530
+Subject: [PATCH 3/3] avcodec/v4l2_context: drop empty capture buffers flagged
+ ERROR
+
+Qualcomm Iris returns the hidden (no-show) frames of a VP9 superframe as
+empty capture buffers flagged V4L2_BUF_FLAG_ERROR with timestamp 0. They
+were output as frames holding stale buffer contents, which players show
+as a flash back to an old picture about once a second. Give such buffers
+back to the driver instead; LAST buffers keep their meaning.
+---
+ libavcodec/v4l2_context.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/libavcodec/v4l2_context.c b/libavcodec/v4l2_context.c
+index ff1498d..1c0f53f 100644
+--- a/libavcodec/v4l2_context.c
++++ b/libavcodec/v4l2_context.c
+@@ -430,6 +430,17 @@ dequeue:
+             return NULL;
+         }
+ 
++        /* an empty capture buffer flagged ERROR and not LAST carries no
++         * picture (Iris returns VP9 hidden frames like this, with timestamp
++         * 0): give it back instead of outputting a stale frame
++         */
++        if (!V4L2_TYPE_IS_OUTPUT(ctx->type) && (buf.flags & V4L2_BUF_FLAG_ERROR) &&
++            !(buf.flags & V4L2_BUF_FLAG_LAST) &&
++            !(V4L2_TYPE_IS_MULTIPLANAR(buf.type) ? buf.m.planes[0].bytesused : buf.bytesused)) {
++            ff_v4l2_buffer_enqueue(&ctx->buffers[buf.index]);
++            goto start;
++        }
++
+         if (ctx_to_m2mctx(ctx)->resize_pending && !V4L2_TYPE_IS_OUTPUT(ctx->type) &&
+             (buf.flags & V4L2_BUF_FLAG_LAST)) {
+             int bytesused = V4L2_TYPE_IS_MULTIPLANAR(buf.type) ?

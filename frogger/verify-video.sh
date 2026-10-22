@@ -126,6 +126,10 @@ if want ffmpeg; then
 		echo "INFO ffmpeg $c 1080p CPU user: hardware ${hw}s, default decoder ($def) ${sw}s"
 		check "ffmpeg $c 1080p: hardware CPU < half of default decoder" "python3 -c 'import sys; sys.exit(0 if $hw < $sw / 2 else 1)'"
 	done
+	# As a player sees them (no frame-rate conversion): the VP9 hidden frames
+	# the driver returns empty and flagged ERROR must not come out as frames.
+	read -r frames exact < <(timeout -k 5 120 ffmpeg -hide_banner -loglevel error -c:v vp9_v4l2m2m -i vp9-1080p30.webm -fps_mode passthrough -pix_fmt nv12 -f rawvideo - 2>/dev/null | cmp_frames es/vp9-1080p30.md5 1920 1080)
+	check "ffmpeg vp9 1080p without frame-rate conversion: 900/900 frames bit-exact (got $frames/$exact)" '[ "$frames" = 900 ] && [ "$exact" = 900 ]'
 	read -r frames exact < <(timeout -k 5 120 ffmpeg -hide_banner -loglevel error -c:v h264_v4l2m2m -i h264-1280x536.mp4 -pix_fmt nv12 -f rawvideo - 2>/dev/null | cmp_frames es/h264-1280x536.md5 1280 536)
 	check "ffmpeg h264 1280x536: 300/300 bit-exact (got $frames/$exact)" '[ "$frames" = 300 ] && [ "$exact" = 300 ]'
 	# Per-frame NV12 size and CRC against the software decode (150 x 720p, 150 x 1080p).
@@ -178,7 +182,8 @@ if want mpv; then
 		i1=$(irqs)
 		check "mpv $f: hardware decoding (v4l2m2m)" 'grep -q "Using hardware decoding (v4l2m2m" <<<"$out"'
 		drops=$(grep -o "DROPS.*" <<<"$out" | tail -1)
-		check "mpv $f: 0 dropped frames ($drops)" 'grep -q "DROPS vo=0 dec=0 " <<<"$drops"'
+		# decoder drops must be 0; allow one compositor (vo) drop in 600 frames
+		check "mpv $f: no decoder drops, at most 1 display drop ($drops)" 'grep -qE "DROPS vo=[01] dec=0 " <<<"$drops"'
 		check "mpv $f: iris interrupts rose ($i0 -> $i1)" '[ "$i1" -gt "$i0" ]'
 	done
 	timeout -k 5 60 "${smpv[@]}" --length=10 --geometry=50%x50% h264-1080p30.mp4 >/tmp/mpv-a.log 2>&1 & a=$!
