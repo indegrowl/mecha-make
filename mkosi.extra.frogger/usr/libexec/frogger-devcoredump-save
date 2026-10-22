@@ -1,0 +1,10 @@
+#!/bin/sh
+# Copy /sys/class/devcoredump/<devcdN>/data to /var/log/devcoredump/, named
+# after the time and the failing device. Called by 90-devcoredump.rules.
+set -eu
+cd="/sys/class/devcoredump/$1"
+dev=$(basename "$(readlink -f "$cd/failing_device")")
+out=/var/log/devcoredump
+mkdir -p "$out"
+cp "$cd/data" "$out/$(date +%Y%m%d-%H%M%S)-$dev-$1.bin"
+logger -t devcoredump "saved $1 from $dev"

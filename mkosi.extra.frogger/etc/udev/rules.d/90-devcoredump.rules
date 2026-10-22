@@ -1,0 +1,3 @@
+# Save every device coredump (GPU, display, video codec, remoteprocs) before the
+# kernel drops it after 5 minutes. Dumps go to /var/log/devcoredump/.
+SUBSYSTEM=="devcoredump", ACTION=="add", RUN+="/usr/libexec/frogger-devcoredump-save %k"
