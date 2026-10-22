@@ -93,5 +93,90 @@ if want kernel; then
 	fi
 fi
 
+# Hash every decoded frame of $1 (w x h, packed) against the host reference list.
+cmp_frames() { # md5list w h  (stdin: raw frames) -> prints "<frames> <exact>"
+	python3 -I -c '
+import hashlib, sys
+ref = [l.strip() for l in open(sys.argv[1])]; w, h = map(int, sys.argv[2:4]); s = w * h * 3 // 2
+got = []; r = sys.stdin.buffer
+while (b := r.read(s)) and len(b) == s: got.append(hashlib.md5(b).hexdigest())
+print(len(got), sum(a == b for a, b in zip(got, ref)))' "$@"
+}
+
+if want ffmpeg; then
+	dec=$(ffmpeg -hide_banner -decoders 2>/dev/null)
+	for c in h264 hevc vp9; do check "ffmpeg has ${c}_v4l2m2m" "grep -q ' ${c}_v4l2m2m ' <<<\"\$dec\""; done
+	for t in h264:h264-1080p30.mp4 hevc:hevc-1080p30.mp4 vp9:vp9-1080p30.webm; do
+		c=${t%%:*} f=${t#*:} n=${f%.*}
+		i0=$(irqs)
+		read -r frames exact < <(timeout 120 ffmpeg -hide_banner -loglevel error -c:v ${c}_v4l2m2m -i "$f" -pix_fmt nv12 -f rawvideo - 2>/dev/null | cmp_frames es/$n.md5 1920 1080)
+		i1=$(irqs)
+		check "ffmpeg $c 1080p: 900/900 frames bit-exact (got $frames/$exact)" '[ "$frames" = 900 ] && [ "$exact" = 900 ]'
+		check "ffmpeg $c 1080p: iris interrupts rose ($i0 -> $i1)" '[ "$i1" -gt "$i0" ]'
+		hw=$( { /usr/bin/time -f %U ffmpeg -hide_banner -loglevel error -c:v ${c}_v4l2m2m -i "$f" -f null - >/dev/null; } 2>&1 | tail -1)
+		sw=$( { /usr/bin/time -f %U ffmpeg -hide_banner -loglevel error -i "$f" -f null - >/dev/null; } 2>&1 | tail -1)
+		echo "INFO ffmpeg $c 1080p CPU user: hardware ${hw}s, default decoder ${sw}s"
+		check "ffmpeg $c 1080p: hardware CPU < half of default decoder" "python3 -c 'import sys; sys.exit(0 if $hw < $sw / 2 else 1)'"
+	done
+	read -r frames exact < <(timeout 120 ffmpeg -hide_banner -loglevel error -c:v h264_v4l2m2m -i h264-1280x536.mp4 -pix_fmt nv12 -f rawvideo - 2>/dev/null | cmp_frames es/h264-1280x536.md5 1280 536)
+	check "ffmpeg h264 1280x536: 300/300 bit-exact (got $frames/$exact)" '[ "$frames" = 300 ] && [ "$exact" = 300 ]'
+	n=$(timeout 120 ffmpeg -hide_banner -loglevel error -c:v h264_v4l2m2m -i h264-reschange.mp4 -f framecrc - 2>/dev/null | grep -c '^0,')
+	check "ffmpeg h264 720p->1080p resolution change: 300 frames (got $n)" '[ "$n" -eq 300 ]'
+	for t in av1_unsupported:av1-1080p30.mkv:hevc hevc10:hevc10-1080p30.mp4:hevc; do
+		f=$(cut -d: -f2 <<<"$t") c=$(cut -d: -f3 <<<"$t")
+		timeout 60 ffmpeg -hide_banner -loglevel error -c:v ${c}_v4l2m2m -i "$f" -frames:v 30 -f null - >/dev/null 2>&1; rc=$?
+		check "ffmpeg ${t%%:*} clip on the hardware decoder ends within 60 s (rc $rc)" '[ "$rc" -ne 124 ]'
+	done
+	check "no iris errors after the ffmpeg runs" '! sudo_ dmesg | grep -iE "iris|aa00000.video-codec" | grep -iqE "error|fail|timeout|watchdog"'
+fi
+
+# Fedora's GStreamer in /usr, not Mecha's /opt/gstreamer (its profile.d script
+# puts /opt first in PATH and GST_PLUGIN_PATH), inside the user's Wayland session.
+# (arrays, not functions: timeout can only run commands)
+fgst=(env -u GST_PLUGIN_PATH -u GST_PLUGIN_PATH_1_0 -u LD_LIBRARY_PATH XDG_RUNTIME_DIR=/run/user/$(id -u) WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1})
+
+if want gst; then
+	check "Fedora gst-launch-1.0 in /usr/bin" '[ -x /usr/bin/gst-launch-1.0 ] && rpm -qf /usr/bin/gst-launch-1.0 | grep -q ^gstreamer1-'
+	for e in v4l2h264dec v4l2h265dec v4l2vp9dec; do check "Fedora GStreamer has $e" '"${fgst[@]}" /usr/bin/gst-inspect-1.0 '"$e"; done
+	for t in h264:h264-1080p30.mp4:qtdemux:h264parse hevc:hevc-1080p30.mp4:qtdemux:h265parse vp9:vp9-1080p30.webm:matroskademux:vp9parse; do
+		IFS=: read -r c f demux parse <<<"$t"; n=${f%.*}; e=v4l2${c/hevc/h265}dec
+		i0=$(irqs)
+		read -r frames exact < <(timeout 120 "${fgst[@]}" /usr/bin/gst-launch-1.0 -q filesrc location=$f ! $demux ! $parse ! $e ! videoconvert ! video/x-raw,format=I420 ! fdsink fd=1 2>/dev/null | cmp_frames es/$n.i420.md5 1920 1080)
+		i1=$(irqs)
+		check "gst $c 1080p: 900/900 frames bit-exact (got $frames/$exact)" '[ "$frames" = 900 ] && [ "$exact" = 900 ]'
+		check "gst $c 1080p: iris interrupts rose ($i0 -> $i1)" '[ "$i1" -gt "$i0" ]'
+		out=$(timeout 60 "${fgst[@]}" /usr/bin/gst-launch-1.0 -v filesrc location=$f ! $demux ! $parse ! $e ! videoconvert ! fpsdisplaysink video-sink=waylandsink text-overlay=false sync=true 2>&1)
+		drop=$(grep -o 'dropped: [0-9]*' <<<"$out" | tail -1 | grep -o '[0-9]*')
+		check "gst $c 1080p on screen: reached EOS, 0 dropped (dropped=${drop:-?})" 'grep -q "Got EOS" <<<"$out" && [ "${drop:-1}" -eq 0 ]'
+	done
+	check "gst h264 720p->1080p resolution change reaches EOS" 'timeout 60 "${fgst[@]}" /usr/bin/gst-launch-1.0 -q filesrc location=h264-reschange.mp4 ! qtdemux ! h264parse ! v4l2h264dec ! fakesink'
+	check "Mecha /opt/gstreamer still runs" 'LD_LIBRARY_PATH=/opt/gstreamer/lib64 /opt/gstreamer/bin/gst-inspect-1.0 --version'
+fi
+
+# mpv with the system config (/etc/mpv/mpv.conf) in the user's Wayland session.
+smpv=(env XDG_RUNTIME_DIR=/run/user/$(id -u) WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-1} mpv --no-config --include=/etc/mpv/mpv.conf --script=drops.lua --msg-level=all=info,vd=v)
+
+if want mpv; then
+	check "/etc/mpv/mpv.conf present" '[ -f /etc/mpv/mpv.conf ]'
+	for f in h264-1080p30.mp4 hevc-1080p30.mp4 vp9-1080p30.webm; do
+		i0=$(irqs)
+		out=$(timeout 60 "${smpv[@]}" --fs --length=20 "$f" 2>&1)
+		i1=$(irqs)
+		check "mpv $f: hardware decoding (v4l2m2m)" 'grep -q "Using hardware decoding (v4l2m2m" <<<"$out"'
+		drops=$(grep -o "DROPS.*" <<<"$out" | tail -1)
+		check "mpv $f: 0 dropped frames ($drops)" 'grep -q "DROPS vo=0 dec=0 " <<<"$drops"'
+		check "mpv $f: iris interrupts rose ($i0 -> $i1)" '[ "$i1" -gt "$i0" ]'
+	done
+	timeout 60 "${smpv[@]}" --length=10 --geometry=50%x50% h264-1080p30.mp4 >/tmp/mpv-a.log 2>&1 & a=$!
+	sleep 2
+	timeout 60 "${smpv[@]}" --length=8 --geometry=50%x50% h264-1080p30.mp4 >/tmp/mpv-b.log 2>&1; rb=$?
+	wait $a; ra=$?
+	check "two mpv at once: both exit 0 (rc $ra/$rb)" '[ "$ra" -eq 0 ] && [ "$rb" -eq 0 ]'
+	echo "INFO second mpv: $(grep -E "Using hardware|Using software|fallback" /tmp/mpv-b.log | head -1)"
+	for f in h264-2160p30.mp4 hevc-2160p30.mp4 vp9-2160p30.webm; do
+		echo "INFO mpv 4K $f: $(timeout 40 "${smpv[@]}" --fs --length=10 "$f" 2>&1 | grep -o "DROPS.*" | tail -1)"
+	done
+fi
+
 exit $fail
 EOF
