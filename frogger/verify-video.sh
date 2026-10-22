@@ -3,7 +3,9 @@
 # over SSH. Pushes the test clips made by c1/video/make-clips.sh, then runs the
 # checks on the phone. Prints PASS/FAIL lines; exits non-zero on any FAIL.
 #
-# Usage: frogger/verify-video.sh [--only kernel|ffmpeg|mpv|gst] [user@host]
+# Usage: frogger/verify-video.sh [--only kernel|ffmpeg|mpv|gst|seq] [user@host]
+#   seq: decoder client sequences (seek, drain, restart, resolution change,
+#        sessions) with frogger/iris-seq (build it with frogger/iris-seq/build.sh)
 #   CLIPS  clip directory (default: ../c1/video/clips next to mecha-make)
 set -uo pipefail
 
@@ -14,6 +16,11 @@ clips=${CLIPS:-$(dirname "$0")/../../c1/video/clips}
 [ -d "$clips" ] || { echo "no clips in $clips (run c1/video/make-clips.sh)" >&2; exit 2; }
 
 rsync -a --mkpath "$clips/" "$target:video-test/" || exit 2
+if [ "$only" = all ] || [ "$only" = seq ]; then
+	tool=$(dirname "$0")/out/iris-seq
+	[ -x "$tool" ] || { echo "no $tool (run frogger/iris-seq/build.sh)" >&2; exit 2; }
+	rsync -a "$tool" "$(dirname "$0")/iris-seq/gaps.sh" "$target:video-test/" || exit 2
+fi
 
 # Run from a file with stdin on /dev/null: as `bash -s` the decoders under test
 # would read the rest of the script from stdin.
@@ -132,6 +139,9 @@ if want ffmpeg; then
 	check "ffmpeg vp9 1080p without frame-rate conversion: 900/900 frames bit-exact (got $frames/$exact)" '[ "$frames" = 900 ] && [ "$exact" = 900 ]'
 	read -r frames exact < <(timeout -k 5 120 ffmpeg -hide_banner -loglevel error -c:v h264_v4l2m2m -i h264-1280x536.mp4 -pix_fmt nv12 -f rawvideo - 2>/dev/null | cmp_frames es/h264-1280x536.md5 1280 536)
 	check "ffmpeg h264 1280x536: 300/300 bit-exact (got $frames/$exact)" '[ "$frames" = 300 ] && [ "$exact" = 300 ]'
+	# Seek back to the start after a drain (looping): three passes, all exact.
+	read -r frames exact < <(timeout -k 5 120 ffmpeg -hide_banner -loglevel error -stream_loop 2 -c:v h264_v4l2m2m -i h264-1280x536.mp4 -pix_fmt nv12 -f rawvideo - 2>/dev/null | cmp_frames <(cat es/h264-1280x536.md5 es/h264-1280x536.md5 es/h264-1280x536.md5) 1280 536)
+	check "ffmpeg h264 looped 3x (seek after drain): 900/900 bit-exact (got $frames/$exact)" '[ "$frames" = 900 ] && [ "$exact" = 900 ]'
 	# Per-frame NV12 size and CRC against the software decode (150 x 720p, 150 x 1080p).
 	read -r n ok < <(timeout -k 5 120 ffmpeg -hide_banner -loglevel error -c:v h264_v4l2m2m -i h264-reschange.ts -fps_mode passthrough -noautoscale -pix_fmt nv12 -f framecrc - 2>/dev/null | awk -F', *' '/^0,/{print $5, $6}' | paste -d' ' - es/h264-reschange.crc | awk 'NF == 4 {n++; if ($1 == $3 && $2 == $4) ok++} END {print n+0, ok+0}')
 	check "ffmpeg h264 720p->1080p resolution change: 300/300 frames exact (got $n/$ok)" '[ "$n" = 300 ] && [ "$ok" = 300 ]'
@@ -190,11 +200,21 @@ if want mpv; then
 	sleep 2
 	timeout -k 5 60 "${smpv[@]}" --length=8 --geometry=50%x50% h264-1080p30.mp4 >/tmp/mpv-b.log 2>&1; rb=$?
 	wait $a; ra=$?
+	# Looping seeks back after a drain: decoding must go on, not spin (it once
+	# hung the decoder and spun 4 cores until the phone overheated).
+	"${smpv[@]}" --fs --loop-file=inf h264-1280x536.mp4 >/tmp/mpv-loop.log 2>&1 & lp=$!
+	sleep 15; i0=$(irqs); sleep 10; i1=$(irqs); cpu=$(ps -o %cpu= -p $lp | tr -d ' ')
+	kill $lp; sleep 1; kill -9 $lp 2>/dev/null
+	check "mpv loop: decoding continues after the loop point (irqs $i0 -> $i1, mpv cpu ${cpu}%)" '[ "$i1" -gt "$i0" ] && [ "${cpu%.*}" -lt 100 ]'
 	check "two mpv at once: both exit 0 (rc $ra/$rb)" '[ "$ra" -eq 0 ] && [ "$rb" -eq 0 ]'
 	echo "INFO second mpv: $(grep -E "Using hardware|Using software|fallback" /tmp/mpv-b.log | head -1)"
 	for f in h264-2160p30.mp4 hevc-2160p30.mp4 vp9-2160p30.webm; do
 		echo "INFO mpv 4K $f: $(timeout -k 5 40 "${smpv[@]}" --fs --length=10 "$f" 2>&1 | grep -o "DROPS.*" | tail -1)"
 	done
+fi
+
+if want seq; then
+	./gaps.sh || fail=1
 fi
 
 exit $fail
