@@ -1,0 +1,74 @@
+From 14dec5c2b683d4162812609b2f919d3b3a36fb7e Mon Sep 17 00:00:00 2001
+From: indegrowl <indegrowl.mail@gmail.com>
+Date: Thu, 22 Oct 2026 21:23:47 +0530
+Subject: [PATCH 4/4] avcodec/v4l2_m2m_dec: restart the decoder session on
+ flush
+
+The V4L2 mem2mem decoders had no flush callback, so avcodec_flush_buffers()
+did nothing. After a drain (end of file) the decoder kept reporting EOF,
+so looping or seeking back after the end stopped decoding for good; mpv
+then retried in a tight loop on four cores until the phone overheated.
+
+Restarting the same session after a finished drain, with
+V4L2_DEC_CMD_START or by streaming the queues off and on, did not resume
+decoding on Qualcomm Iris (it kept returning LAST buffers). Open a new
+session on flush instead; decoded frames are copies, so nothing refers to
+the old session's buffers.
+---
+ libavcodec/v4l2_m2m_dec.c | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/libavcodec/v4l2_m2m_dec.c b/libavcodec/v4l2_m2m_dec.c
+index 1e05845..92c450f 100644
+--- a/libavcodec/v4l2_m2m_dec.c
++++ b/libavcodec/v4l2_m2m_dec.c
+@@ -136,10 +136,15 @@ static int v4l2_prepare_decoder(V4L2m2mContext *s)
+ static int v4l2_receive_frame(AVCodecContext *avctx, AVFrame *frame)
+ {
+     V4L2m2mContext *s = ((V4L2m2mPriv*)avctx->priv_data)->context;
+-    V4L2Context *const capture = &s->capture;
+-    V4L2Context *const output = &s->output;
++    V4L2Context *capture, *output;
+     int ret;
+ 
++    /* a failed restart after a flush leaves no session */
++    if (!s || s->fd < 0)
++        return AVERROR(EINVAL);
++    capture = &s->capture;
++    output = &s->output;
++
+     if (!s->buf_pkt.size) {
+         ret = ff_decode_get_packet(avctx, &s->buf_pkt);
+         if (ret < 0) {
+@@ -229,6 +234,23 @@ static av_cold int v4l2_decode_close(AVCodecContext *avctx)
+     return ff_v4l2_m2m_codec_end(avctx->priv_data);
+ }
+ 
++static void v4l2_decode_flush(AVCodecContext *avctx)
++{
++    int ret;
++
++    /* seek: start a new decoder session. Restarting the same one after a
++     * finished drain (V4L2_DEC_CMD_START, or stream off and on) did not
++     * resume decoding on Qualcomm Iris, so looping or seeking back after the
++     * end of a file stopped decoding for good, and players retried in a
++     * tight loop. Decoded frames are copies, so nothing still refers to the
++     * old session's buffers.
++     */
++    v4l2_decode_close(avctx);
++    ret = v4l2_decode_init(avctx);
++    if (ret < 0)
++        av_log(avctx, AV_LOG_ERROR, "can't restart the decoder after a flush\n");
++}
++
+ #define OFFSET(x) offsetof(V4L2m2mPriv, x)
+ #define FLAGS AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_DECODING_PARAM
+ 
+@@ -259,6 +281,7 @@ static const AVOption options[] = {
+         .init           = v4l2_decode_init, \
+         FF_CODEC_RECEIVE_FRAME_CB(v4l2_receive_frame), \
+         .close          = v4l2_decode_close, \
++        .flush          = v4l2_decode_flush, \
+         .bsfs           = bsf_name, \
+         .p.capabilities = AV_CODEC_CAP_HARDWARE | AV_CODEC_CAP_DELAY | AV_CODEC_CAP_AVOID_PROBING, \
+         .caps_internal  = FF_CODEC_CAP_NOT_INIT_THREADSAFE | \

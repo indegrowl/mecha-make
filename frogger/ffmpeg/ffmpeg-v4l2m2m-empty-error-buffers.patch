@@ -1,7 +1,7 @@
 From c9b1c30bcec71ee8e43abb22ed00be26790c8ff3 Mon Sep 17 00:00:00 2001
 From: indegrowl <indegrowl.mail@gmail.com>
 Date: Thu, 22 Oct 2026 19:22:48 +0530
-Subject: [PATCH 3/3] avcodec/v4l2_context: drop empty capture buffers flagged
+Subject: [PATCH 3/4] avcodec/v4l2_context: drop empty capture buffers flagged
  ERROR
 
 Qualcomm Iris returns the hidden (no-show) frames of a VP9 superframe as

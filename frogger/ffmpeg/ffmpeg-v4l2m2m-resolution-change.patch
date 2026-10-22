@@ -1,7 +1,7 @@
 From 7f321a68dc6da5a5de6c8534ca93febc1abc3a74 Mon Sep 17 00:00:00 2001
 From: indegrowl <indegrowl.mail@gmail.com>
 Date: Thu, 22 Oct 2026 16:23:56 +0530
-Subject: [PATCH 2/3] avcodec/v4l2_context: reinit capture after the last
+Subject: [PATCH 2/4] avcodec/v4l2_context: reinit capture after the last
  buffer of a resolution change
 
 On V4L2_EVENT_SOURCE_CHANGE the capture queue still holds frames decoded

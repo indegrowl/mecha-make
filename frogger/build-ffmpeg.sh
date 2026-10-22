@@ -3,9 +3,9 @@
 # (frogger/ffmpeg/ffmpeg-v4l2.patch) and the v4l2m2m fixes
 # (frogger/ffmpeg/ffmpeg-v4l2m2m-*.patch) so mpv, Firefox and anything else using the
 # system libavcodec can decode on the Iris VPU. Same sonames as Fedora's, release
-# suffixed .frogger3 so it wins over the repo build. Built natively in an arm64
+# suffixed .frogger4 so it wins over the repo build. Built natively in an arm64
 # Fedora 44 container under qemu-user emulation on an x86_64 host.
-# Output: frogger/out/rpms/{ffmpeg-free,lib*-free{,-devel}}-*.frogger3.aarch64.rpm
+# Output: frogger/out/rpms/{ffmpeg-free,lib*-free{,-devel}}-*.frogger4.aarch64.rpm
 # (-devel too: mpv-devel in the image pins the exact libav*-free-devel release)
 set -euo pipefail
 
@@ -35,4 +35,4 @@ podman run --rm --platform linux/arm64 -v "$PWD":/build -w /build registry.fedor
         case \$f in *-debug*) ;; *) cp \$f /build/frogger/out/rpms/ ;; esac
     done
 "
-ls frogger/out/rpms/*frogger3*.rpm
+ls frogger/out/rpms/*frogger4*.rpm
