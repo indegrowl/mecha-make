@@ -41,7 +41,7 @@ rm -rf "$out/kbuild/rpmbuild/RPMS"
 # so it can never pick a Fedora or Mecha kernel of the same version.
 "${make[@]}" binrpm-pkg RPMOPTS="--define 'dist .frogger'"
 
-rm -f "$out/rpms"/*.rpm
+rm -f "$out/rpms"/kernel-*.rpm
 cp "$out/kbuild/rpmbuild/RPMS/aarch64/kernel-$release-"*.aarch64.rpm "$out/rpms/"
 cp "$out/kbuild/arch/arm64/boot/Image.gz" "$out/boot/"
 cp "$out/kbuild/arch/arm64/boot/dts/qcom/milos-nothing-frogger.dtb" "$out/boot/"
