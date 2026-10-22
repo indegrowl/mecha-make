@@ -1,0 +1,71 @@
+From 79c7c1cb52e98978ca6af8f2afc50655d5fc78b5 Mon Sep 17 00:00:00 2001
+From: indegrowl <indegrowl.mail@gmail.com>
+Date: Thu, 22 Oct 2026 15:57:08 +0530
+Subject: [PATCH 1/2] avcodec/v4l2_buffers: copy decoded frames out of the
+ capture buffers
+
+A capture reinit on a resolution change waits for every reference to the
+capture buffers to be released. The ffmpeg tool and players keep decoded
+frames queued while they wait for the next ones, so the decoder thread
+blocks in sem_wait() forever (and ignores SIGTERM, which only sets a flag).
+
+Copy each picture into a regular frame and requeue the V4L2 buffer at once,
+so no capture buffer is ever held by the caller.
+---
+ libavcodec/v4l2_buffers.c | 36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/libavcodec/v4l2_buffers.c b/libavcodec/v4l2_buffers.c
+index 077c1ee..a8b95c9 100644
+--- a/libavcodec/v4l2_buffers.c
++++ b/libavcodec/v4l2_buffers.c
+@@ -437,6 +437,35 @@ int ff_v4l2_buffer_avframe_to_buf(const AVFrame *frame, V4L2Buffer *out)
+     return v4l2_buffer_swframe_to_buf(frame, out);
+ }
+ 
++static int v4l2_frame_copy_out(AVFrame *frame)
++{
++    AVFrame *copy = av_frame_alloc();
++    int ret;
++
++    if (!copy)
++        return AVERROR(ENOMEM);
++
++    copy->format = frame->format;
++    copy->width  = frame->width;
++    copy->height = frame->height;
++
++    ret = av_frame_get_buffer(copy, 0);
++    if (ret >= 0)
++        ret = av_frame_copy(copy, frame);
++    if (ret >= 0)
++        ret = av_frame_copy_props(copy, frame);
++    if (ret < 0) {
++        av_frame_free(&copy);
++        return ret;
++    }
++
++    av_frame_unref(frame);
++    av_frame_move_ref(frame, copy);
++    av_frame_free(&copy);
++
++    return 0;
++}
++
+ int ff_v4l2_buffer_buf_to_avframe(AVFrame *frame, V4L2Buffer *avbuf)
+ {
+     int ret;
+@@ -470,7 +499,12 @@ int ff_v4l2_buffer_buf_to_avframe(AVFrame *frame, V4L2Buffer *avbuf)
+         frame->decode_error_flags |= FF_DECODE_ERROR_INVALID_BITSTREAM;
+     }
+ 
+-    return 0;
++    /* 4. copy the picture out and give the buffer back to the driver now:
++     *    a capture reinit (resolution change) waits for every buffer
++     *    reference to be released, which deadlocks when the caller still
++     *    holds decoded frames and needs new ones to release them.
++     */
++    return v4l2_frame_copy_out(frame);
+ }
+ 
+ int ff_v4l2_buffer_buf_to_avpkt(AVPacket *pkt, V4L2Buffer *avbuf)

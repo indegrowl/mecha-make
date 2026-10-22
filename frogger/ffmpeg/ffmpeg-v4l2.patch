@@ -1,0 +1,38 @@
+--- a/ffmpeg.spec
++++ b/ffmpeg.spec
+@@ -108,7 +108,7 @@
+ %global pkg_name %{name}%{?pkg_suffix}
+ 
+ Version:        8.1.3
+-Release:        1%{?dist}
++Release:        1%{?dist}.frogger2
+ Summary:        A complete solution to record, convert and stream audio and video
+ License:        GPL-3.0-or-later
+ URL:            https://ffmpeg.org/
+@@ -136,6 +136,10 @@
+ # Reference: https://crbug.com/1306560
+ Patch1002:      ffmpeg-chromium.patch
+ 
++# frogger (Iris VPU): V4L2 mem2mem decoding through a resolution change
++Patch1003:      ffmpeg-v4l2m2m-copy-out.patch
++Patch1004:      ffmpeg-v4l2m2m-resolution-change.patch
++
+ 
+ Requires:       libavcodec%{?pkg_suffix}%{_isa} = %{version}-%{release}
+ Requires:       libavdevice%{?pkg_suffix}%{_isa} = %{version}-%{release}
+--- a/enable_decoders
++++ b/enable_decoders
+@@ -165,11 +165,13 @@
+ h263
+ h263_v4l2m2m # hardware
+ h263i
++h264_v4l2m2m # hardware (frogger: Iris VPU)
+ h263p
+ hap
+ hca
+ hcom
+ hdr
++hevc_v4l2m2m # hardware (frogger: Iris VPU)
+ hnm4_video
+ hq_hqa
+ hqx
