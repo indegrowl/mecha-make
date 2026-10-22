@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "No AV1 on YouTube (frogger)",
+  "description": "The Nothing Phone (4a) video block has no AV1 decoder: report AV1 as unsupported so YouTube sends VP9 or H.264, which play in hardware.",
+  "version": "1.0",
+  "content_scripts": [{
+    "matches": ["*://*.youtube.com/*", "*://*.youtube-nocookie.com/*"],
+    "js": ["no-av1.js"],
+    "run_at": "document_start",
+    "world": "MAIN",
+    "all_frames": true
+  }]
+}
