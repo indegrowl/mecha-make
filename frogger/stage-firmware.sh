@@ -26,6 +26,7 @@ declare -A target=(
     [adspua.jsn]=qcom/milos/nothing/frogger
     [battmgr.jsn]=qcom/milos/nothing/frogger
     [wpss.mbn]=qcom/milos/nothing/frogger
+    [vpu20_2v.mbn]=qcom/milos/nothing/frogger
     [board-2.bin]=ath11k/WCN6750/hw1.0
 )
 
