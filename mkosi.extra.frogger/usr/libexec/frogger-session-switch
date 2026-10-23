@@ -12,6 +12,16 @@ start_greetd() {
     systemctl start --no-block greetd.service
 }
 
+# PAM's gnome-keyring-daemon outlives the session's compositor and keeps the
+# session on seat0 ("closing"), where logind ignores terminate-session: stop the
+# session's scope instead.
+end_seat_sessions() {
+    local s
+    for s in $(loginctl list-sessions --no-legend | awk '$4 == "seat0" { print $1 }'); do
+        systemctl stop "session-$s.scope"
+    done
+}
+
 # The old session's compositor owns its VT's switching until it has exited; a
 # greetd that starts earlier waits forever for its own VT to become active.
 wait_seat_free() {
@@ -38,6 +48,7 @@ switch_to() {
     stop_greetd
     # greetd only runs initial_session again when its run marker is gone.
     rm -f "${GREETD_RUN:-/run/greetd.run}"
+    end_seat_sessions
     wait_seat_free
     start_greetd
 }

@@ -15,6 +15,7 @@ restarts=0
 calls=$tmp/calls
 stop_greetd() { echo stop >>"$calls"; }
 start_greetd() { echo start >>"$calls"; restarts=$((restarts + 1)); }
+end_seat_sessions() { echo end >>"$calls"; }
 wait_seat_free() { echo "wait greetd.run=$([ -e "$GREETD_RUN" ] && echo yes || echo no)" >>"$calls"; }
 flag=$tmp/run/next
 
@@ -30,7 +31,7 @@ switch_to steam
 check "switch steam writes the flag" '[ "$(cat "$flag")" = steam ]'
 check "switch steam removes greetd.run" '[ ! -e "$GREETD_RUN" ]'
 check "switch steam restarts greetd once" '[ $restarts = 1 ]'
-check "old session ends before greetd starts" '[ "$(tr "\n" " " <"$calls")" = "stop wait greetd.run=no start " ]'
+check "old session ends before greetd starts" '[ "$(tr "\n" " " <"$calls")" = "stop end wait greetd.run=no start " ]'
 switch_to steam
 check "switch twice leaves one flag" '[ "$(cat "$flag")" = steam ]'
 touch "$GREETD_RUN"; restarts=0
@@ -44,10 +45,18 @@ check "rejected switch writes nothing" '[ ! -e "$flag" ] && [ $restarts = 0 ]'
 mkdir "$tmp/bin"
 printf '#!/bin/sh\nn=$(cat "%s" 2>/dev/null || echo 0); echo $((n + 1)) >"%s"\n[ "$n" -lt 2 ] && echo "c1 1000 mecha seat0 123 user tty2 yes -"\necho "c9 1000 mecha - 456 user - no -"\n' "$tmp/n" "$tmp/n" >"$tmp/bin/loginctl"
 chmod 755 "$tmp/bin/loginctl"
-unset -f wait_seat_free
+unset -f wait_seat_free end_seat_sessions
 source mkosi.extra.frogger/usr/libexec/frogger-session-switch
 PATH=$tmp/bin:$PATH SEAT_POLL=0 wait_seat_free
 check "waits until seat0 has no session" '[ "$(cat "$tmp/n")" = 3 ]'
+
+# A process left in the old session (gnome-keyring-daemon from PAM) keeps it on
+# seat0 in "closing", and logind ignores terminate-session then: stop its scope.
+printf '#!/bin/sh\necho "c1 1000 mecha seat0 123 user tty2 yes -"\necho "c9 1000 mecha - 456 user - no -"\n' >"$tmp/bin/loginctl"
+printf '#!/bin/sh\necho "$*" >>"%s"\n' "$tmp/ended" >"$tmp/bin/systemctl"
+chmod 755 "$tmp/bin/systemctl"
+PATH=$tmp/bin:$PATH end_seat_sessions
+check "ends what is left of the seat0 session" '[ "$(cat "$tmp/ended")" = "stop session-c1.scope" ]'
 
 check "greetd runs the chooser" \
     'grep -qx "command = \"/usr/libexec/frogger-session-chooser\"" mkosi.extra.frogger/etc/greetd/config.toml'
