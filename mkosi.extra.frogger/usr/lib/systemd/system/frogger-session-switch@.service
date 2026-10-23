@@ -1,0 +1,6 @@
+[Unit]
+Description=Switch the greetd session to %i
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/frogger-session-switch %i

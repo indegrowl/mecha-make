@@ -1,0 +1,31 @@
+#!/bin/bash
+# Switches the greetd session: steam (one boot only) or mechanix.
+# Run as root by frogger-session-switch@<name>.service.
+
+flag_dir=${FROGGER_SESSION_DIR:-/run/frogger-session}
+
+restart_greetd() {
+    systemctl restart --no-block greetd.service
+}
+
+switch_to() {
+    case "$1" in
+    steam)
+        mkdir -p "$flag_dir"
+        chmod 0777 "$flag_dir"
+        echo steam >"$flag_dir/next"
+        chmod 0666 "$flag_dir/next" ;;
+    mechanix)
+        rm -f "$flag_dir/next" ;;
+    *)
+        echo "usage: frogger-session-switch steam|mechanix" >&2
+        return 1 ;;
+    esac
+    # greetd only runs initial_session again when its run marker is gone.
+    rm -f "${GREETD_RUN:-/run/greetd.run}"
+    restart_greetd
+}
+
+[ -n "${FROGGER_SESSION_LIB:-}" ] && return 0
+
+switch_to "$1"
