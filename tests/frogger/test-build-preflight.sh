@@ -10,9 +10,10 @@ trap 'rm -rf "$tmp"' EXIT
 fail=0
 check() { if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 
-mkdir -p "$tmp/repo/frogger" "$tmp/fw"
+mkdir -p "$tmp/repo/frogger/color" "$tmp/fw"
 cp build.sh "$tmp/repo/"
 cp frogger/*.sh "$tmp/repo/frogger/"
+cp frogger/color/*.py "$tmp/repo/frogger/color/"
 for n in adsp.mbn adsp_dtb.mbn adspr.jsn adsps.jsn adspua.jsn battmgr.jsn board-2.bin gen80300_gmu.bin gen80300_sqe.fw gen80300_zap.mbn wpss.mbn \
     vpu20_2v.mbn aw882xx_acf.bin MILOS-Nothing-Phone-4a-tplg.bin modem.mbn modemr.jsn ipa_fws.mbn; do
     echo "$n" >"$tmp/fw/$n"
