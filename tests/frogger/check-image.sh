@@ -11,6 +11,10 @@ check() { if eval "$2"; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }
 dbg() { debugfs -R "$1" "$root" 2>/dev/null; }
 exists() { dbg "stat $1" | grep -q "^Inode:"; }
 cat_() { dbg "cat $1"; }
+rpmdb=$(mktemp -d)
+trap 'rm -rf "$rpmdb"' EXIT
+dbg "rdump /usr/lib/sysimage/rpm $rpmdb" >/dev/null
+rpmq() { rpm --dbpath "$rpmdb/rpm" -q "$1" 2>/dev/null; }
 
 check "e2fsck clean" 'e2fsck -fn "$root" >/dev/null 2>&1'
 check "label mechanix-root" '[ "$(e2label "$root")" = mechanix-root ]'
@@ -28,11 +32,25 @@ for f in qcom/gen80300_sqe.fw qcom/gen80300_gmu.bin ath11k/WCN6750/hw1.0/board-2
     qcom/milos/nothing/frogger/{adsp.mbn,adsp_dtb.mbn,adspr.jsn,adsps.jsn,adspua.jsn,battmgr.jsn,wpss.mbn,gen80300_zap.mbn}; do
     check "firmware $f" 'exists "$fw/$f"'
 done
-check "dnf kernel exclude" 'cat_ /etc/dnf/libdnf5.conf.d/90-frogger-kernel.conf | grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*"'
+check "dnf keeps the frogger kernel, compositor and gamescope" 'cat_ /etc/dnf/libdnf5.conf.d/90-frogger-kernel.conf | grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*,mechanix-compositor,gamescope"'
 check "session uses the msm display" 'cat_ /usr/bin/mechanix-session | grep -q "ae01000.display-controller"'
 check "compositor installed" 'exists /usr/bin/mechanix-compositor'
 check "keyboard installed" 'exists /usr/bin/mechanix-keyboard'
-check "greetd autologin into mechanix-session" 'cat_ /etc/greetd/config.toml | grep -q "/usr/bin/mechanix-session"'
+check "greetd runs the session chooser" 'cat_ /etc/greetd/config.toml | grep -qx "command = \"/usr/libexec/frogger-session-chooser\""'
+check "chooser falls back to mechanix-session" 'cat_ /usr/libexec/frogger-session-chooser | grep -q "exec /usr/bin/mechanix-session"'
+check "session switch helper" 'exists /usr/libexec/frogger-session-switch'
+check "session switch unit" 'exists /usr/lib/systemd/system/frogger-session-switch@.service'
+check "session switch polkit rule" 'exists /etc/polkit-1/rules.d/50-frogger-session-switch.rules'
+check "Steam launcher entry" 'exists /usr/share/applications/frogger-steam.desktop'
+check "Steam session" 'exists /usr/libexec/frogger-steam-session && exists /usr/libexec/frogger-steam-run'
+check "Steam installer" 'exists /usr/libexec/frogger-steam-install'
+check "streaming_client wrapper" 'exists /usr/share/frogger-steam/streaming_client'
+check "green-seam shim" 'exists /usr/lib64/frogger-steam/sc-padfix.so'
+check "shim clamps every frame (v2)" 'rpmq frogger-steam-padfix | grep -q "^frogger-steam-padfix-2-"'
+check "gamescope installed" 'exists /usr/bin/gamescope'
+check "gamescope maps the SPI touchscreen" 'rpmq gamescope | grep -q "\.frogger1\."'
+check "Steam controller udev rules" 'exists /usr/lib/udev/rules.d/60-steam-input.rules'
+check "no Valve client in the image" '! exists /home/mecha/.local/share/Steam'
 check "lockscreen PIN provisioned" 'exists /etc/mechanix/pin.passwd'
 check "SSH key installed for mecha" 'exists /home/mecha/.ssh/authorized_keys'
 check "hostname frogger" '[ "$(cat_ /etc/hostname)" = frogger ]'
