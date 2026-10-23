@@ -6,5 +6,6 @@ gpgcheck=0
 enabled=1
 # Pin this repo below Fedora's own repos (priority=99, the dnf5 default) so  custom-built kernel/firmware packages are always preferred over the stock ones.
 priority=1
-# frogger installs its own kernel RPM (frogger/out/rpms), never the Comet kernels.
-excludepkgs=kernel,kernel-core,kernel-modules*
+# frogger installs its own kernel RPM (frogger/out/rpms), never the Comet kernels,
+# and its own mechanix-keyboard build (frogger/build-keyboard.sh).
+excludepkgs=kernel,kernel-core,kernel-modules*,mechanix-keyboard
