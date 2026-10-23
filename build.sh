@@ -69,6 +69,10 @@ frogger_preflight() {
         echo "no frogger-steam-padfix RPM in frogger/out/rpms (run frogger/build-steam-padfix.sh)"
         ok=1
     fi
+    if ! ls frogger/out/rpms/gamescope-*.frogger*.aarch64.rpm >/dev/null 2>&1; then
+        echo "no gamescope RPM in frogger/out/rpms (run frogger/build-gamescope.sh)"
+        ok=1
+    fi
     local scratch
     scratch=$(mktemp -d)
     frogger/stage-firmware.sh "" "$scratch/fw" >/dev/null 2>"$scratch/err" || { cat "$scratch/err"; ok=1; }
