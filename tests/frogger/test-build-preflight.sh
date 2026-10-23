@@ -26,6 +26,7 @@ check "no mkosi.env: exit 1" '[ $rc -eq 1 ]'
 check "names the missing password" 'grep -qx "mkosi.env: MECHA_USER_PASSWORD not set" "$tmp/out"'
 check "names the missing PIN" 'grep -qx "mkosi.env: MECHANIX_LOCKSCREEN_PIN not set" "$tmp/out"'
 check "names the missing qbootctl RPM" 'grep -qx "no qbootctl RPM in frogger/out/rpms (run frogger/build-qbootctl.sh)" "$tmp/out"'
+check "names the missing compositor RPM" 'grep -qx "no mechanix-compositor RPM in frogger/out/rpms (run frogger/build-compositor.sh)" "$tmp/out"'
 check "names the missing steam padfix RPM" 'grep -qx "no frogger-steam-padfix RPM in frogger/out/rpms (run frogger/build-steam-padfix.sh)" "$tmp/out"'
 check "names the missing kernel RPM" 'grep -qx "no kernel RPM in frogger/out/rpms (run frogger/build-kernel.sh)" "$tmp/out"'
 
@@ -39,6 +40,7 @@ mkdir -p "$tmp/repo/frogger/out/rpms" "$tmp/repo/frogger/out/boot"
 touch "$tmp/repo/frogger/out/rpms/kernel-7.2.0-1.frogger.aarch64.rpm" \
     "$tmp/repo/frogger/out/rpms/qbootctl-0^20250101git39a6e6d-1.fc44.aarch64.rpm" \
     "$tmp/repo/frogger/out/rpms/mechanix-keyboard-0.1.0-4.frogger.fc44.aarch64.rpm" \
+    "$tmp/repo/frogger/out/rpms/mechanix-compositor-1.0.0-2.frogger1.fc44.aarch64.rpm" \
     "$tmp/repo/frogger/out/rpms/frogger-steam-padfix-1-1.frogger.fc44.aarch64.rpm" \
     "$tmp/repo/frogger/out/boot/Image.gz" "$tmp/repo/frogger/out/boot/milos-nothing-frogger.dtb"
 rm "$tmp/fw/wpss.mbn"

@@ -61,6 +61,10 @@ frogger_preflight() {
         echo "no mechanix-keyboard RPM in frogger/out/rpms (run frogger/build-keyboard.sh)"
         ok=1
     fi
+    if ! ls frogger/out/rpms/mechanix-compositor-*.frogger*.aarch64.rpm >/dev/null 2>&1; then
+        echo "no mechanix-compositor RPM in frogger/out/rpms (run frogger/build-compositor.sh)"
+        ok=1
+    fi
     if ! ls frogger/out/rpms/frogger-steam-padfix-*.frogger*.aarch64.rpm >/dev/null 2>&1; then
         echo "no frogger-steam-padfix RPM in frogger/out/rpms (run frogger/build-steam-padfix.sh)"
         ok=1
