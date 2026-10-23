@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 import zipfile
+sys.dont_write_bytecode = True  # never leave __pycache__ in mkosi.extra.frogger
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[2]
