@@ -4,8 +4,22 @@
 
 flag_dir=${FROGGER_SESSION_DIR:-/run/frogger-session}
 
-restart_greetd() {
-    systemctl restart --no-block greetd.service
+stop_greetd() {
+    systemctl stop greetd.service
+}
+
+start_greetd() {
+    systemctl start --no-block greetd.service
+}
+
+# The old session's compositor owns its VT's switching until it has exited; a
+# greetd that starts earlier waits forever for its own VT to become active.
+wait_seat_free() {
+    local i
+    for i in $(seq 1 50); do
+        loginctl list-sessions --no-legend | awk '$4 == "seat0" { busy = 1 } END { exit !busy }' || return 0
+        sleep "${SEAT_POLL:-0.2}"
+    done
 }
 
 switch_to() {
@@ -21,9 +35,11 @@ switch_to() {
         echo "usage: frogger-session-switch steam|mechanix" >&2
         return 1 ;;
     esac
+    stop_greetd
     # greetd only runs initial_session again when its run marker is gone.
     rm -f "${GREETD_RUN:-/run/greetd.run}"
-    restart_greetd
+    wait_seat_free
+    start_greetd
 }
 
 [ -n "${FROGGER_SESSION_LIB:-}" ] && return 0

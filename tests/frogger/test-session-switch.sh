@@ -12,7 +12,10 @@ export FROGGER_SESSION_LIB=1 FROGGER_SESSION_DIR=$tmp/run GREETD_RUN=$tmp/greetd
 source mkosi.extra.frogger/usr/libexec/frogger-session-chooser
 source mkosi.extra.frogger/usr/libexec/frogger-session-switch
 restarts=0
-restart_greetd() { restarts=$((restarts + 1)); }
+calls=$tmp/calls
+stop_greetd() { echo stop >>"$calls"; }
+start_greetd() { echo start >>"$calls"; restarts=$((restarts + 1)); }
+wait_seat_free() { echo "wait greetd.run=$([ -e "$GREETD_RUN" ] && echo yes || echo no)" >>"$calls"; }
 flag=$tmp/run/next
 
 check "no flag chooses mechanix" '[ "$(chosen_session)" = mechanix ]'
@@ -27,6 +30,7 @@ switch_to steam
 check "switch steam writes the flag" '[ "$(cat "$flag")" = steam ]'
 check "switch steam removes greetd.run" '[ ! -e "$GREETD_RUN" ]'
 check "switch steam restarts greetd once" '[ $restarts = 1 ]'
+check "old session ends before greetd starts" '[ "$(tr "\n" " " <"$calls")" = "stop wait greetd.run=no start " ]'
 switch_to steam
 check "switch twice leaves one flag" '[ "$(cat "$flag")" = steam ]'
 touch "$GREETD_RUN"; restarts=0
@@ -36,6 +40,14 @@ check "switch mechanix restarts greetd" '[ $restarts = 1 ]'
 restarts=0
 check "switch rejects other names" '! switch_to foo 2>/dev/null'
 check "rejected switch writes nothing" '[ ! -e "$flag" ] && [ $restarts = 0 ]'
+
+mkdir "$tmp/bin"
+printf '#!/bin/sh\nn=$(cat "%s" 2>/dev/null || echo 0); echo $((n + 1)) >"%s"\n[ "$n" -lt 2 ] && echo "c1 1000 mecha seat0 123 user tty2 yes -"\necho "c9 1000 mecha - 456 user - no -"\n' "$tmp/n" "$tmp/n" >"$tmp/bin/loginctl"
+chmod 755 "$tmp/bin/loginctl"
+unset -f wait_seat_free
+source mkosi.extra.frogger/usr/libexec/frogger-session-switch
+PATH=$tmp/bin:$PATH SEAT_POLL=0 wait_seat_free
+check "waits until seat0 has no session" '[ "$(cat "$tmp/n")" = 3 ]'
 
 check "greetd runs the chooser" \
     'grep -qx "command = \"/usr/libexec/frogger-session-chooser\"" mkosi.extra.frogger/etc/greetd/config.toml'
