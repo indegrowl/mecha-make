@@ -68,9 +68,10 @@ while read -r name path; do
     fi
     count=$((count + 1))
 done <<<"$files"
-# DSPP colour calibration, generated from the stock QDCM tables (local, like the rest)
+# DSPP colour calibration, generated from the stock QDCM tables (local, like the rest).
+# Table 3 is Android's "Standard" (sRGB, D65); table 0 is its vivid "Alive" default.
 qdcm=${FROGGER_QDCM_DIR:-$HOME/projects/nothing-4a-linux/research_notes/dspp-color-2026-10-23/qdcm/qdcm_out}
-python3 frogger/color/make-dspp-calib.py --pattern qdcm --qdcm-dir "$qdcm" --table 0 \
+python3 frogger/color/make-dspp-calib.py --pattern qdcm --qdcm-dir "$qdcm" --table 3 \
     -o "$dest/$fw/qcom/milos/nothing-frogger-dspp.bin"
 count=$((count + 1))
 echo "staged $count firmware entries from $src into $dest"
