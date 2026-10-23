@@ -50,8 +50,8 @@ u=mkosi.extra.frogger/usr/lib/systemd/system/qbootctl-mark-successful.service
 check "good boots are marked successful" 'grep -qx "ExecStart=/usr/bin/qbootctl -m" "$u" && grep -qx "Type=oneshot" "$u"'
 check "only after the session is up" 'grep -qx "After=graphical.target" "$u" && grep -qx "WantedBy=graphical.target" "$u"'
 check "fstab grows the root" 'grep -Eq "^LABEL=mechanix-root +/ +ext4 +defaults,x-systemd.growfs +0 +1$" mkosi.extra.frogger/etc/fstab'
-check "dnf never replaces the kernel or the frogger compositor" \
-    'grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*,mechanix-compositor" mkosi.extra.frogger/etc/dnf/libdnf5.conf.d/90-frogger-kernel.conf'
+check "dnf never replaces the kernel, the frogger compositor or gamescope" \
+    'grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*,mechanix-compositor,gamescope" mkosi.extra.frogger/etc/dnf/libdnf5.conf.d/90-frogger-kernel.conf'
 check "build-time Mecha repo excludes its kernels" \
     'grep -qx "excludepkgs=kernel,kernel-core,kernel-modules\*,mechanix-keyboard,mechanix-compositor" mkosi.sandbox.frogger/etc/yum.repos.d/mecha-comet-rpm.repo'
 check "build-time Mecha repo keeps priority=1" 'grep -qx "priority=1" mkosi.sandbox.frogger/etc/yum.repos.d/mecha-comet-rpm.repo'
