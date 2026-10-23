@@ -41,6 +41,7 @@ ipa_fws.mbn                     qcom/milos/nothing/frogger/ipa_fws.mbn
 #   MILOS-Nothing-Phone-4a-tplg.bin  AudioReach topology, ref-audio/audioreach-topology-fp6 frogger build;
 #                                    the kernel asks for qcom/<driver>/<card name>-tplg.bin
 #   modem.mbn, modemr.jsn, modem_pr/, ipa_fws.mbn   ../fw-260402/out/lib/firmware/qcom/milos/nothing/frogger
+#   nothing-frogger-dspp.bin is generated below (frogger/color/make-dspp-calib.py)
 
 missing=0 count=0
 while read -r name path; do
@@ -67,4 +68,9 @@ while read -r name path; do
     fi
     count=$((count + 1))
 done <<<"$files"
+# DSPP colour calibration, generated from the stock QDCM tables (local, like the rest)
+qdcm=${FROGGER_QDCM_DIR:-$HOME/projects/nothing-4a-linux/research_notes/dspp-color-2026-10-23/qdcm/qdcm_out}
+python3 frogger/color/make-dspp-calib.py --pattern qdcm --qdcm-dir "$qdcm" --table 0 \
+    -o "$dest/$fw/qcom/milos/nothing-frogger-dspp.bin"
+count=$((count + 1))
 echo "staged $count firmware entries from $src into $dest"
