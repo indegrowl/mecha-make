@@ -1,0 +1,20 @@
+"linuxarm64"
+{
+	"version"		"1792099137"
+	"bins_linuxarm64_linuxarm64"
+	{
+		"file"		"bins_linuxarm64_linuxarm64.zip.426e3ea97690dd3ddacbfb4b509a4ca9e916b62d"
+		"size"		"110383070"
+		"sha2"		"a77faaf185f7b0681886d1c30e989d2cd1821cea421d41556e733b9d065b85a1"
+		"zipvz"		"bins_linuxarm64_linuxarm64.zip.vz.58c5cb12cb236d192c285c8935557fa1bdea1c02_61432555"
+		"sha2vz"		"dcedf6272899aa60c694d2a28394850b2ae6860ba88b5460708b684b6057b29e"
+	}
+	"tenfoot_images_all"
+	{
+		"file"		"tenfoot_images_all.zip.86419c7a56c12dd107b5e0d46f50c8a9b121f3cc"
+		"size"		"6582204"
+		"sha2"		"990676bc29d01736477c6b571b5048258a6156284ef242503112fc68567cbf01"
+		"zipvz"		"tenfoot_images_all.zip.vz.193cb8c4eb4446698ea2c0a9e8c4e6b6a623dac7_5572671"
+		"sha2vz"		"e1fee3beffa9d08a415a35ddc7d3141af6c44269c67e67aa0a3eea6e56889bd7"
+	}
+}

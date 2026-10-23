@@ -1,0 +1,204 @@
+#!/usr/bin/python3
+# First-open install of Valve's ARM64 Steam client for the frogger Steam app.
+# Nothing of Valve's ships in the image: the bootstrap and the beta update come
+# from Valve's CDN here. Steam's own updater manages ~70 KB/s on the phone, so
+# the update packages are prefetched in parallel; Steam then installs them.
+# Progress goes to stdout in zenity --progress format.
+import argparse
+import concurrent.futures
+import hashlib
+import json
+import os
+import re
+import shutil
+import sys
+import urllib.request
+import zipfile
+from pathlib import Path
+
+CDN = "https://client-update.steamstatic.com/"
+BOOTSTRAP_MANIFEST = "steam_client_linuxarm64"
+BOOTSTRAP_ENTRY = "bins_linuxarm64_linuxarm64"
+# The beta -deckard switches to; Steam rewrites package/beta if it changes.
+DEFAULT_BETA = "linux_arm64_beta_861407927dc8efb407da7cf"
+MARKER = ".frogger-installed"
+MIN_FREE = 3 << 30
+OPENVR_PATHS = {"config": [], "external_drivers": None, "jsonid": "vrpathreg",
+                "log": [], "runtime": [], "version": 1}
+
+
+class InstallError(Exception):
+    pass
+
+
+def parse_manifest(text):
+    """Valve's client manifest (VDF text): top-level keys plus {entry: {key: value}}."""
+    out, path, key = {}, [], None
+    for word, brace in re.findall(r'"([^"]*)"|([{}])', text):
+        if brace == "{":
+            path.append(key)
+            key = None
+        elif brace == "}":
+            if path:
+                path.pop()
+            key = None
+        elif key is None:
+            key = word
+        else:
+            if len(path) == 1:
+                out[key] = word
+            elif len(path) == 2:
+                out.setdefault(path[1], {})[key] = word
+            key = None
+    return out
+
+
+def is_installed(steam_dir):
+    return (steam_dir / MARKER).exists() and (steam_dir / "steamrtarm64/steam").exists()
+
+
+def extract_bootstrap(zip_path, dest):
+    """Unzip the bootstrap; its member names use backslashes."""
+    dest = dest.resolve()
+    with zipfile.ZipFile(zip_path) as z:
+        for info in z.infolist():
+            name = info.filename.replace("\\", "/")
+            if name.endswith("/"):
+                continue
+            path = (dest / name).resolve()
+            if not path.is_relative_to(dest):
+                continue
+            path.parent.mkdir(parents=True, exist_ok=True)
+            data = z.read(info)
+            path.write_bytes(data)
+            path.chmod(0o755 if data[:4] == b"\x7fELF" or data[:2] == b"#!" else 0o644)
+
+
+def make_links(home, steam_dir):
+    links = {"steam": steam_dir, "root": steam_dir, "sdk32": steam_dir / "linux32",
+             "sdk64": steam_dir / "linux64", "sdkarm64": steam_dir / "linuxarm64",
+             "bin32": steam_dir / "ubuntu12_32", "bin64": steam_dir / "ubuntu12_64"}
+    (home / ".steam").mkdir(parents=True, exist_ok=True)
+    for name, target in links.items():
+        link = home / ".steam" / name
+        if link.is_symlink() or link.exists():
+            link.unlink()
+        link.symlink_to(target)
+    vr = home / ".config/openvr/openvrpaths.vrpath"
+    vr.parent.mkdir(parents=True, exist_ok=True)
+    vr.write_text(json.dumps(OPENVR_PATHS))
+
+
+def prefetch(manifest, pkg_dir, fetch, jobs=8):
+    """Fetch every missing or wrong-sized .vz package of an update manifest."""
+    todo = []
+    for entry in manifest.values():
+        if not isinstance(entry, dict) or "zipvz" not in entry:
+            continue
+        name = entry["zipvz"]
+        size = int(name.rsplit("_", 1)[1])
+        path = pkg_dir / name
+        if path.exists() and path.stat().st_size == size:
+            continue
+        todo.append((name, size, entry["sha2vz"], path))
+
+    def one(item):
+        name, size, sha, path = item
+        try:
+            fetch(name, path)
+        except OSError as e:
+            raise InstallError(f"download of {name} failed: {e}") from e
+        data = path.read_bytes()
+        if len(data) != size or hashlib.sha256(data).hexdigest() != sha:
+            path.unlink()
+            raise InstallError(f"{name} is corrupt")
+
+    with concurrent.futures.ThreadPoolExecutor(jobs) as pool:
+        for f in [pool.submit(one, item) for item in todo]:
+            f.result()
+
+
+def cdn_fetch(name, out):
+    with urllib.request.urlopen(CDN + name, timeout=60) as r:
+        part = out.with_name(out.name + ".part")
+        with open(part, "wb") as f:
+            shutil.copyfileobj(r, f, 1 << 20)
+    part.rename(out)
+
+
+def cdn_text(name):
+    with urllib.request.urlopen(CDN + name, timeout=60) as r:
+        return r.read().decode()
+
+
+def progress(pct, msg):
+    print(f"# {msg}\n{pct}", flush=True)
+
+
+def install(home, steam_dir):
+    pkg = steam_dir / "package"
+    pkg.mkdir(parents=True, exist_ok=True)
+    (steam_dir / MARKER).unlink(missing_ok=True)
+    if shutil.disk_usage(pkg).free < MIN_FREE:
+        raise InstallError("Not enough free space (Steam needs about 3 GB)")
+
+    progress(2, "Contacting Steam…")
+    try:
+        boot = parse_manifest(cdn_text(BOOTSTRAP_MANIFEST))[BOOTSTRAP_ENTRY]
+    except (OSError, KeyError) as e:
+        raise InstallError(f"Can't reach Steam's servers ({e})") from e
+
+    progress(5, "Downloading Steam…")
+    zpath = pkg / boot["file"]
+    if not (zpath.exists() and zpath.stat().st_size == int(boot["size"])):
+        try:
+            cdn_fetch(boot["file"], zpath)
+        except OSError as e:
+            raise InstallError(f"Download failed ({e})") from e
+    if hashlib.sha256(zpath.read_bytes()).hexdigest() != boot["sha2"]:
+        zpath.unlink()
+        raise InstallError("The Steam download is corrupt, try again")
+
+    progress(20, "Unpacking Steam…")
+    extract_bootstrap(zpath, steam_dir)
+    make_links(home, steam_dir)
+
+    beta_file = pkg / "beta"
+    beta = beta_file.read_text().strip() if beta_file.exists() else DEFAULT_BETA
+    beta_file.write_text(beta)
+    progress(25, "Downloading the Steam update…")
+    try:
+        update = parse_manifest(cdn_text(f"steam_client_{beta}_linuxarm64"))
+        entries = [e for e in update.values() if isinstance(e, dict) and "zipvz" in e]
+        done = [0]
+
+        def counted(name, out):
+            cdn_fetch(name, out)
+            done[0] += 1
+            progress(25 + 70 * done[0] // max(len(entries), 1), "Downloading the Steam update…")
+        prefetch(update, pkg, counted)
+    except (InstallError, OSError) as e:
+        # Steam downloads the update itself, just slowly.
+        print(f"# Steam will finish the download itself ({e})", flush=True)
+
+    (steam_dir / MARKER).touch()
+    progress(100, "Starting Steam…")
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--steam-dir", type=Path, default=Path.home() / ".local/share/Steam")
+    args = ap.parse_args()
+    if is_installed(args.steam_dir):
+        return 0
+    try:
+        install(Path.home(), args.steam_dir)
+    except InstallError as e:
+        print(f"# {e}", flush=True)
+        print(str(e), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
