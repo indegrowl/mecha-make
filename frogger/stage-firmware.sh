@@ -14,33 +14,57 @@ src=${1:-${FROGGER_FW_DIR:-../pmaports/device/testing/firmware-nothing-frogger}}
 dest=${2:-mkosi.local/frogger-firmware}
 fw=usr/lib/firmware/updates
 
-# name -> directory under $fw
-declare -A target=(
-    [gen80300_sqe.fw]=qcom
-    [gen80300_gmu.bin]=qcom
-    [gen80300_zap.mbn]=qcom/milos/nothing/frogger
-    [adsp.mbn]=qcom/milos/nothing/frogger
-    [adsp_dtb.mbn]=qcom/milos/nothing/frogger
-    [adspr.jsn]=qcom/milos/nothing/frogger
-    [adsps.jsn]=qcom/milos/nothing/frogger
-    [adspua.jsn]=qcom/milos/nothing/frogger
-    [battmgr.jsn]=qcom/milos/nothing/frogger
-    [wpss.mbn]=qcom/milos/nothing/frogger
-    [vpu20_2v.mbn]=qcom/milos/nothing/frogger
-    [board-2.bin]=ath11k/WCN6750/hw1.0
-)
+# source file (in src-dir) -> path under $fw. A source ending in / is a
+# directory, copied whole.
+files="
+gen80300_sqe.fw                 qcom/gen80300_sqe.fw
+gen80300_gmu.bin                qcom/gen80300_gmu.bin
+gen80300_zap.mbn                qcom/milos/nothing/frogger/gen80300_zap.mbn
+adsp.mbn                        qcom/milos/nothing/frogger/adsp.mbn
+adsp_dtb.mbn                    qcom/milos/nothing/frogger/adsp_dtb.mbn
+adspr.jsn                       qcom/milos/nothing/frogger/adspr.jsn
+adsps.jsn                       qcom/milos/nothing/frogger/adsps.jsn
+adspua.jsn                      qcom/milos/nothing/frogger/adspua.jsn
+battmgr.jsn                     qcom/milos/nothing/frogger/battmgr.jsn
+wpss.mbn                        qcom/milos/nothing/frogger/wpss.mbn
+vpu20_2v.mbn                    qcom/milos/nothing/frogger/vpu20_2v.mbn
+board-2.bin                     ath11k/WCN6750/hw1.0/board-2.bin
+aw882xx_acf.bin                 qcom/milos/nothing/frogger/aw882xx_acf.bin
+MILOS-Nothing-Phone-4a-tplg.bin qcom/milos/Nothing Phone (4a)-tplg.bin
+modem.mbn                       qcom/milos/nothing/frogger/modem.mbn
+modemr.jsn                      qcom/milos/nothing/frogger/modemr.jsn
+modem_pr/                       qcom/milos/nothing/frogger/modem_pr
+ipa_fws.mbn                     qcom/milos/nothing/frogger/ipa_fws.mbn
+"
+# Sources besides the pmaports firmware package's own (see its .gitignore):
+#   aw882xx_acf.bin                  Awinic tuning, vendor partition (research_notes/audio-recon-2026-10-18)
+#   MILOS-Nothing-Phone-4a-tplg.bin  AudioReach topology, ref-audio/audioreach-topology-fp6 frogger build;
+#                                    the kernel asks for qcom/<driver>/<card name>-tplg.bin
+#   modem.mbn, modemr.jsn, modem_pr/, ipa_fws.mbn   ../fw-260402/out/lib/firmware/qcom/milos/nothing/frogger
 
-missing=0
-for name in $(printf '%s\n' "${!target[@]}" | sort); do
-    if [ ! -f "$src/$name" ]; then
+missing=0 count=0
+while read -r name path; do
+    [ -n "$name" ] || continue
+    if [ ! -e "$src/$name" ]; then
         echo "missing firmware: $name" >&2
         missing=1
     fi
-done
+done <<<"$files"
 [ "$missing" -eq 0 ] || exit 1
 
 rm -rf "$dest"
-for name in "${!target[@]}"; do
-    install -Dm644 "$src/$name" "$dest/$fw/${target[$name]}/$name"
-done
-echo "staged ${#target[@]} firmware files from $src into $dest"
+while read -r name path; do
+    [ -n "$name" ] || continue
+    if [ "${name%/}" != "$name" ]; then
+        mkdir -p "$dest/$fw/$path"
+        # Only the firmware, not the directory's own .gitignore
+        (cd "$src/$name" && find . -type f ! -name .gitignore -print0) |
+            while IFS= read -r -d '' f; do
+                install -Dm644 "$src/$name/$f" "$dest/$fw/$path/$f"
+            done
+    else
+        install -Dm644 "$src/$name" "$dest/$fw/$path"
+    fi
+    count=$((count + 1))
+done <<<"$files"
+echo "staged $count firmware entries from $src into $dest"
