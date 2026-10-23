@@ -72,7 +72,7 @@ v4l2_decode() { # dev es fourcc width height frame
 if want kernel; then
 	check "qcom-iris module loaded" 'lsmod | grep -q "^qcom_iris "'
 	dmesg_=$(sudo_ dmesg)
-	check "no iris errors in dmesg" '! grep -iE "iris|aa00000.video-codec" <<<"$dmesg_" | grep -iqE "error|fail|timeout|watchdog"'
+	check "no iris errors in dmesg" '! grep -iE "iris|aa00000.video-codec" <<<"$dmesg_" | grep -iqE "error|fail|timeout|watchdog|holds|not queued|restarted before"'
 	check "VPU firmware vpu20_2v.mbn present" '[ -e /usr/lib/firmware/updates/qcom/milos/nothing/frogger/vpu20_2v.mbn ]'
 	dec=$(dev_for "Iris Decoder"); enc=$(dev_for "Iris Encoder")
 	check "decoder node ($dec)" '[ -n "$dec" ]'
@@ -98,7 +98,7 @@ if want kernel; then
 		sleep 60   # let Iris runtime-suspend, then decode again
 		v4l2_decode "$dec" es/h264-1280x536.h264 H264 1280 536 150
 		check "h264 after 60 s idle: 300 frames, frame 150 exact" '[ "$FRAMES" -eq 300 ] && [ "$MD5" = "$(ref_md5 es/h264-1280x536.f150.nv12)" ]'
-		check "no new iris errors after the decodes" '! sudo_ dmesg | grep -iE "iris|aa00000.video-codec" | grep -iqE "error|fail|timeout|watchdog"'
+		check "no new iris errors after the decodes" '! sudo_ dmesg | grep -iE "iris|aa00000.video-codec" | grep -iqE "error|fail|timeout|watchdog|holds|not queued|restarted before"'
 	fi
 fi
 
@@ -148,9 +148,9 @@ if want ffmpeg; then
 	for t in av1_unsupported:av1-1080p30.mkv:hevc hevc10:hevc10-1080p30.mp4:hevc; do
 		f=$(cut -d: -f2 <<<"$t") c=$(cut -d: -f3 <<<"$t")
 		timeout -k 5 60 ffmpeg -hide_banner -loglevel error -c:v ${c}_v4l2m2m -i "$f" -frames:v 30 -f null - >/dev/null 2>&1; rc=$?
-		check "ffmpeg ${t%%:*} clip on the hardware decoder ends within 60 s (rc $rc)" '[ "$rc" -ne 124 ]'
+		check "ffmpeg ${t%%:*} clip on the hardware decoder ends within 60 s (rc $rc)" '[ "$rc" -ne 124 ] && [ "$rc" -ne 137 ]'
 	done
-	check "no iris errors after the ffmpeg runs" '! sudo_ dmesg | grep -iE "iris|aa00000.video-codec" | grep -iqE "error|fail|timeout|watchdog"'
+	check "no iris errors after the ffmpeg runs" '! sudo_ dmesg | grep -iE "iris|aa00000.video-codec" | grep -iqE "error|fail|timeout|watchdog|holds|not queued|restarted before"'
 fi
 
 # Fedora's GStreamer in /usr, not Mecha's /opt/gstreamer (its profile.d script
