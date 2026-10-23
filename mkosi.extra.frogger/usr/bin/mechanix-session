@@ -3,6 +3,7 @@
 
 # msm (ae01000.display-controller) drives both the DSI panel and the Adreno GPU.
 export MECHA_DRM_DEVICE=/dev/dri/by-path/platform-ae01000.display-controller-card
+export MECHA_SCALE=2.25
 
 /usr/bin/mechanix-compositor > /tmp/compositor.log 2>&1 &
 COMPOSITOR_PID=$!
