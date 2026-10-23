@@ -1,5 +1,5 @@
 Name:           frogger-steam-padfix
-Version:        1
+Version:        2
 Release:        1.frogger%{?dist}
 Summary:        Hides the green seam in Steam Remote Play on the Nothing Phone (4a)
 License:        MIT
