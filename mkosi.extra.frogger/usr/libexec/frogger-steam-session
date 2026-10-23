@@ -1,0 +1,10 @@
+#!/bin/bash
+# Steam session (started by frogger-session-chooser): gamescope on the panel
+# around frogger-steam-run. However it ends, go back to Mechanix.
+exec >"${FROGGER_STEAM_LOG:-/tmp/frogger-steam.log}" 2>&1
+export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+export LANG=en_US.UTF-8
+
+gamescope -e -O DSI-1 -- /usr/libexec/frogger-steam-run
+echo "gamescope exited $?"
+systemctl start --no-block frogger-session-switch@mechanix.service

@@ -1,0 +1,13 @@
+#!/bin/bash
+# Put in front of Steam's streaming_client (now streaming_client.real) by
+# frogger-steam-run. Drops --openvr (the client segfaults with it outside the
+# Steam Frame) and preloads the shim that hides the green seam on Iris.
+log=${SC_LOG:-/tmp/sc.log}
+args=()
+for a in "$@"; do [ "$a" = --openvr ] || args+=("$a"); done
+echo "=== $(date) ${args[*]}" >>"$log"
+export LD_PRELOAD=/usr/lib64/frogger-steam/sc-padfix.so${LD_PRELOAD:+:$LD_PRELOAD} SC_PADFIX_DEBUG=1
+"$(dirname "$0")/streaming_client.real" "${args[@]}" >>"$log" 2>&1
+rc=$?
+echo "=== exit $rc" >>"$log"
+exit "$rc"

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Steam's "Switch to Desktop" calls this on SteamOS: go back to Mechanix.
+exec systemctl start --no-block frogger-session-switch@mechanix.service

@@ -1,0 +1,46 @@
+#!/bin/bash
+# Runs inside gamescope: install Steam on first open, keep our streaming_client
+# wrapper in place, then run Steam's gamepad UI.
+
+steam_dir=${STEAM_DIR:-$HOME/.local/share/Steam}
+wrapper_template=/usr/share/frogger-steam/streaming_client
+
+# Steam restores its own streaming_client on every start and update. Keep the
+# newest real binary as streaming_client.real, with our wrapper in front.
+ensure_wrapper() {
+    local rt=$1 tmpl=$2
+    head -c4 "$rt/streaming_client" 2>/dev/null | cmp -s - <(printf '\x7fELF') || return 0
+    install -m755 "$tmpl" "$rt/streaming_client.wrapper" || return 1
+    mv -f "$rt/streaming_client" "$rt/streaming_client.real"
+    mv -f "$rt/streaming_client.wrapper" "$rt/streaming_client"
+    echo "streaming_client wrapper applied"
+}
+
+wrapper_watch() {
+    while sleep 5; do ensure_wrapper "$steam_dir/steamrtarm64" "$wrapper_template"; done
+}
+
+[ -n "${FROGGER_STEAM_LIB:-}" ] && return 0
+
+if [ ! -e "$steam_dir/.frogger-installed" ] || [ ! -e "$steam_dir/steamrtarm64/steam" ]; then
+    /usr/libexec/frogger-steam-install --steam-dir "$steam_dir" |
+        zenity --progress --title=Steam --text="Setting up Steam…" --auto-close --no-cancel --width=600
+    if [ "${PIPESTATUS[0]}" != 0 ]; then
+        zenity --error --title=Steam --width=600 \
+            --text="Steam couldn't be set up. Check the internet connection and open Steam again."
+        exit 1
+    fi
+fi
+
+wrapper_watch &
+watcher=$!
+cd "$steam_dir/steamrtarm64" || exit 1
+# Steam exits 42 after applying its own update: start it again.
+for i in 1 2 3; do
+    ./steam -deckard -steamos3 -gamepadui
+    rc=$?
+    echo "steam exited $rc"
+    [ "$rc" = 42 ] || break
+done
+kill "$watcher"
+exit "$rc"

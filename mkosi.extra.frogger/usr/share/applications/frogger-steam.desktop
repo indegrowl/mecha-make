@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Steam
+Comment=Play your PC games with Steam Remote Play
+Exec=/usr/bin/frogger-steam
+Icon=applications-games
+Terminal=false
+Categories=Game;
