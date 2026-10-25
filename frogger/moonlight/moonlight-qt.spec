@@ -1,6 +1,6 @@
 Name:           moonlight-qt
 Version:        6.2.0
-Release:        1.frogger1%{?dist}
+Release:        1.frogger2%{?dist}
 Summary:        Moonlight game streaming client, built against the Iris FFmpeg
 License:        GPL-3.0-or-later
 URL:            https://github.com/moonlight-stream/moonlight-qt
@@ -35,10 +35,11 @@ qmake6 PREFIX=%{_prefix} CONFIG+=release moonlight-qt.pro
 
 %install
 make install INSTALL_ROOT=%{buildroot}
-
+# Started through the frogger Moonlight session (landscape gamescope); its own
+# entry would open the portrait host list in Mechanix.
+rm %{buildroot}%{_datadir}/applications/com.moonlight_stream.Moonlight.desktop
 %files
 %license LICENSE
 %{_bindir}/moonlight
-%{_datadir}/applications/com.moonlight_stream.Moonlight.desktop
 %{_datadir}/icons/hicolor/scalable/apps/moonlight.svg
 %{_datadir}/metainfo/com.moonlight_stream.Moonlight.appdata.xml

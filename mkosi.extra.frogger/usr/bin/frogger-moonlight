@@ -1,0 +1,3 @@
+#!/bin/sh
+# Launcher entry: leave Mechanix for the Moonlight session (this boot only).
+exec systemctl start --no-block frogger-session-switch@moonlight.service

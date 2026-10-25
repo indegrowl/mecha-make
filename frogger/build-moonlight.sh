@@ -3,7 +3,7 @@
 # ffmpeg-free (.frogger4, frogger/build-ffmpeg.sh), so its hevc_v4l2m2m decoder
 # runs on the Iris VPU. Built natively in an arm64 Fedora 44 container under
 # qemu-user emulation on an x86_64 host.
-# Output: frogger/out/rpms/moonlight-qt-*.frogger1.aarch64.rpm
+# Output: frogger/out/rpms/moonlight-qt-*.frogger2.aarch64.rpm
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -31,4 +31,4 @@ podman run --rm --security-opt label=disable --platform linux/arm64 -v "$PWD":/b
     cp /tmp/rpmbuild/RPMS/aarch64/moonlight-qt-$version-*.aarch64.rpm frogger/out/rpms/
 "
 rm -f frogger/out/rpms/moonlight-qt-debug*.rpm
-ls frogger/out/rpms/moonlight-qt-*.frogger1*.aarch64.rpm
+ls frogger/out/rpms/moonlight-qt-*.frogger2*.aarch64.rpm

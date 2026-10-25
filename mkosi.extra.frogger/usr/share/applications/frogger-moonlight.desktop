@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Moonlight
+Comment=Play your PC games, streamed by Sunshine
+Exec=/usr/bin/frogger-moonlight
+Icon=moonlight
+Terminal=false
+Categories=Game;

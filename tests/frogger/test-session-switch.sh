@@ -23,6 +23,9 @@ check "no flag chooses mechanix" '[ "$(chosen_session)" = mechanix ]'
 mkdir -p "$tmp/run"; echo steam >"$flag"
 check "steam flag chooses steam" '[ "$(chosen_session)" = steam ]'
 check "steam flag is used once" '[ "$(chosen_session)" = mechanix ]'
+echo moonlight >"$flag"
+check "moonlight flag chooses moonlight" '[ "$(chosen_session)" = moonlight ]'
+check "moonlight flag is used once" '[ "$(chosen_session)" = mechanix ]'
 echo "rm -rf /" >"$flag"
 check "garbage flag chooses mechanix" '[ "$(chosen_session)" = mechanix ]'
 
@@ -34,6 +37,10 @@ check "switch steam restarts greetd once" '[ $restarts = 1 ]'
 check "old session ends before greetd starts" '[ "$(tr "\n" " " <"$calls")" = "stop end wait greetd.run=no start " ]'
 switch_to steam
 check "switch twice leaves one flag" '[ "$(cat "$flag")" = steam ]'
+switch_to moonlight
+check "switch moonlight writes the flag" '[ "$(cat "$flag")" = moonlight ]'
+switch_to steam
+check "switch back to steam replaces the flag" '[ "$(cat "$flag")" = steam ]'
 touch "$GREETD_RUN"; restarts=0
 switch_to mechanix
 check "switch mechanix clears the flag" '[ ! -e "$flag" ]'
@@ -63,13 +70,19 @@ check "greetd runs the chooser" \
 check "greetd still logs in mecha" 'grep -qx "user = \"mecha\"" mkosi.extra.frogger/etc/greetd/config.toml'
 rule=mkosi.extra.frogger/etc/polkit-1/rules.d/50-frogger-session-switch.rules
 check "polkit names the steam unit" 'grep -q "frogger-session-switch@steam.service" $rule'
+check "polkit names the moonlight unit" 'grep -q "frogger-session-switch@moonlight.service" $rule'
 check "polkit names the mechanix unit" 'grep -q "frogger-session-switch@mechanix.service" $rule'
 check "polkit only for mecha" 'grep -q "subject.user == \"mecha\"" $rule'
 check "polkit only for start" 'grep -q "\"start\"" $rule'
 check "polkit grants in one place" '[ "$(grep -c "Result.YES" $rule)" = 1 ]'
 unit=mkosi.extra.frogger/usr/lib/systemd/system/frogger-session-switch@.service
 check "switch unit runs the helper" 'grep -qx "ExecStart=/usr/libexec/frogger-session-switch %i" $unit'
-for f in frogger-session-chooser frogger-session-switch; do
+ms=mkosi.extra.frogger/usr/libexec/frogger-moonlight-session
+check "moonlight session streams big picture in gamescope on the panel" 'grep -q "gamescope -O DSI-1 -- moonlight stream \"\$host\" \"Steam Big Picture\"" $ms'
+check "moonlight session returns to mechanix" 'grep -q "frogger-session-switch@mechanix.service" $ms'
+check "moonlight launcher switches session" 'grep -q "frogger-session-switch@moonlight.service" mkosi.extra.frogger/usr/bin/frogger-moonlight'
+check "moonlight launcher entry" 'grep -qx "Name=Moonlight" mkosi.extra.frogger/usr/share/applications/frogger-moonlight.desktop && grep -qx "Exec=/usr/bin/frogger-moonlight" mkosi.extra.frogger/usr/share/applications/frogger-moonlight.desktop'
+for f in frogger-session-chooser frogger-session-switch frogger-moonlight-session; do
     check "$f executable in git" '[ "$(git ls-files -s mkosi.extra.frogger/usr/libexec/$f | cut -c1-6)" = 100755 ]'
 done
 

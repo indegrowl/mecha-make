@@ -1,5 +1,5 @@
 #!/bin/bash
-# Switches the greetd session: steam (one boot only) or mechanix.
+# Switches the greetd session: steam or moonlight (one boot only) or mechanix.
 # Run as root by frogger-session-switch@<name>.service.
 
 flag_dir=${FROGGER_SESSION_DIR:-/run/frogger-session}
@@ -34,15 +34,15 @@ wait_seat_free() {
 
 switch_to() {
     case "$1" in
-    steam)
+    steam | moonlight)
         mkdir -p "$flag_dir"
         chmod 0777 "$flag_dir"
-        echo steam >"$flag_dir/next"
+        echo "$1" >"$flag_dir/next"
         chmod 0666 "$flag_dir/next" ;;
     mechanix)
         rm -f "$flag_dir/next" ;;
     *)
-        echo "usage: frogger-session-switch steam|mechanix" >&2
+        echo "usage: frogger-session-switch steam|moonlight|mechanix" >&2
         return 1 ;;
     esac
     stop_greetd

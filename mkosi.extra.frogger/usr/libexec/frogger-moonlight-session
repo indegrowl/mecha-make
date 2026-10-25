@@ -1,0 +1,12 @@
+#!/bin/bash
+# Moonlight session (started by frogger-session-chooser): straight into the PC's
+# Steam Big Picture over Sunshine, in gamescope on the panel (landscape, touch
+# mapped). Quitting the stream, or a PC that can't be reached, goes back to Mechanix.
+exec >"${FROGGER_MOONLIGHT_LOG:-/tmp/frogger-moonlight.log}" 2>&1
+export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
+export LANG=en_US.UTF-8
+host=${FROGGER_MOONLIGHT_HOST:-bastion}
+
+gamescope -O DSI-1 -- moonlight stream "$host" "Steam Big Picture"
+echo "gamescope exited $?"
+systemctl start --no-block frogger-session-switch@mechanix.service

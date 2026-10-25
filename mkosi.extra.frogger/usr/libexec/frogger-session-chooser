@@ -1,6 +1,7 @@
 #!/bin/bash
 # greetd's initial session: Mechanix, unless frogger-session-switch@steam left
-# a one-shot request in /run (gone after a reboot) for the Steam session.
+# a one-shot request in /run (gone after a reboot) for the Steam session, or
+# frogger-session-switch@moonlight for the Moonlight one.
 
 flag_dir=${FROGGER_SESSION_DIR:-/run/frogger-session}
 
@@ -9,12 +10,16 @@ chosen_session() {
     local next
     next=$(cat "$flag_dir/next" 2>/dev/null)
     rm -f "$flag_dir/next"
-    if [ "$next" = steam ]; then echo steam; else echo mechanix; fi
+    case "$next" in
+        steam | moonlight) echo "$next" ;;
+        *) echo mechanix ;;
+    esac
 }
 
 [ -n "${FROGGER_SESSION_LIB:-}" ] && return 0
 
-if [ "$(chosen_session)" = steam ] && [ -x /usr/libexec/frogger-steam-session ]; then
-    exec /usr/libexec/frogger-steam-session
+session=$(chosen_session)
+if [ "$session" != mechanix ] && [ -x "/usr/libexec/frogger-$session-session" ]; then
+    exec "/usr/libexec/frogger-$session-session"
 fi
 exec /usr/bin/mechanix-session
