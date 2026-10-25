@@ -5,6 +5,8 @@ exec >"${FROGGER_STEAM_LOG:-/tmp/frogger-steam.log}" 2>&1
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}
 export LANG=en_US.UTF-8
 
-gamescope -e -O DSI-1 -- /usr/libexec/frogger-steam-run
+# Steam renders 1920x1080; gamescope scales it onto the 2720x1224 panel with
+# black bars over the curved edges and the hole-punch camera.
+gamescope -e -O DSI-1 -w 1920 -h 1080 -- /usr/libexec/frogger-steam-run
 echo "gamescope exited $?"
 systemctl start --no-block frogger-session-switch@mechanix.service

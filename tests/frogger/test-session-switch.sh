@@ -77,6 +77,7 @@ check "polkit only for start" 'grep -q "\"start\"" $rule'
 check "polkit grants in one place" '[ "$(grep -c "Result.YES" $rule)" = 1 ]'
 unit=mkosi.extra.frogger/usr/lib/systemd/system/frogger-session-switch@.service
 check "switch unit runs the helper" 'grep -qx "ExecStart=/usr/libexec/frogger-session-switch %i" $unit'
+check "steam session renders 1080p, letterboxed on the panel" 'grep -q "gamescope -e -O DSI-1 -w 1920 -h 1080 -- /usr/libexec/frogger-steam-run" mkosi.extra.frogger/usr/libexec/frogger-steam-session'
 ms=mkosi.extra.frogger/usr/libexec/frogger-moonlight-session
 check "moonlight session streams big picture in gamescope on the panel" 'grep -q "gamescope -O DSI-1 -- moonlight stream \"\$host\" \"Steam Big Picture\"" $ms'
 check "moonlight session returns to mechanix" 'grep -q "frogger-session-switch@mechanix.service" $ms'
