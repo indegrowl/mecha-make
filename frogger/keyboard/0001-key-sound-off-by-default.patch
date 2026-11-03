@@ -1,0 +1,20 @@
+Key-tap sound off by default; MECHANIX_KBD_SOUND=1 turns it on.
+
+The always-open PipeWire stream on the speaker sink made the keyboard spin
+(122% CPU) and the speakers crackle on frogger. With the sound off the stream
+is never opened.
+
+diff --git a/src/sound.rs b/src/sound.rs
+index c9ef819..c0b8afd 100644
+--- a/src/sound.rs
++++ b/src/sound.rs
+@@ -36,6 +36,9 @@ impl Resource for KeySound {}
+ 
+ impl KeySound {
+     pub fn load() -> Self {
++        if std::env::var_os("MECHANIX_KBD_SOUND").is_none_or(|v| v != "1") {
++            return Self(None);
++        }
+         match Output::open() {
+             Ok(out) => Self(Some(out)),
+             Err(err) => {

@@ -26,4 +26,7 @@ fi
 rpm=${rpms[0]}
 
 scp "$rpm" "$target:/tmp/"
-ssh -t "$target" "sudo $KERNEL_UPDATE_CMD /tmp/$(basename "$rpm") && rm /tmp/$(basename "$rpm") && rpm -q kernel"
+# The old package's %preun (kernel-install remove 7.2.0) runs after the new
+# one's %post and deletes modules.dep and the other depmod files, which leaves
+# the next boot without any modules; regenerate them afterwards.
+ssh -t "$target" "sudo $KERNEL_UPDATE_CMD /tmp/$(basename "$rpm") && sudo depmod 7.2.0 && rm /tmp/$(basename "$rpm") && rpm -q kernel"

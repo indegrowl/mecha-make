@@ -16,9 +16,11 @@ if [ ! -f "$src" ]; then
     mv "$src.tmp" "$src"
 fi
 echo "$sha256  $src" | sha256sum -c --quiet
+cp frogger/keyboard/*.patch frogger/out/src/
 
 # A registry name other than fedora:44 so the amd64 mecha-build base isn't replaced.
-podman run --rm --platform linux/arm64 -v "$PWD":/build -w /build registry.fedoraproject.org/fedora:44 bash -euxc "
+# label=disable: the data disk has no SELinux labels, so a relabel-free mount is refused
+podman run --rm --security-opt label=disable --platform linux/arm64 -v "$PWD":/build -w /build registry.fedoraproject.org/fedora:44 bash -euxc "
     dnf -y -q install rpm-build cargo rust gcc git pkgconf-pkg-config alsa-lib-devel libxkbcommon-devel wayland-devel mesa-libgbm-devel
     rpmbuild -bb --define '_topdir /tmp/rpmbuild' --define '_sourcedir /build/frogger/out/src' $spec
     cp /tmp/rpmbuild/RPMS/aarch64/mechanix-keyboard-*.aarch64.rpm frogger/out/rpms/
